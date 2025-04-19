@@ -1,0 +1,1 @@
+basing some stuff off https://github.com/isu3ru/java-swing-template/tree/master
