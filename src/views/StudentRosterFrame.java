@@ -14,7 +14,7 @@ public class StudentRosterFrame extends JFrame {
     private JLabel gradeLabel;
     private JButton viewDetailsButton;
 
-    public StudentRosterFrame(List<String> graders, List<Student> students) {
+    public StudentRosterFrame(java.util.List<String> graders, java.util.List<Student> students) {
         super("Student Roster");
 
         // Graders panel
@@ -89,8 +89,8 @@ public class StudentRosterFrame extends JFrame {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            List<String> graders = Arrays.asList("Alice", "Bob");
-            List<Student> students = Arrays.asList(
+            java.util.List<String> graders = Arrays.asList("Alice", "Bob");
+            java.util.List<Student> students = Arrays.asList(
                 new Student("John Doe", 85.5),
                 new Student("Jane Smith", 92.0),
                 new Student("Mike Brown", 76.3)
