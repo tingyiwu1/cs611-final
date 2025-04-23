@@ -1,6 +1,7 @@
 package obj;
 
 import java.util.ArrayList;
+import java.util.Optional;
 
 import store.Store;
 
@@ -26,6 +27,42 @@ public class Student extends User {
       }
     }
     return courses;
+  }
+
+  public Optional<Enrollment> getEnrollment(String courseId) {
+    return store.get(Enrollment.class, getId() + "-" + courseId);
+  }
+
+  public Enrollment createEnrollment(String courseId, Enrollment.Status status) {
+    return new Enrollment(store, getId(), courseId, status);
+  }
+
+  public Enrollment createEnrollment(Course course, Enrollment.Status status) {
+    return createEnrollment(course.getId(), status);
+  }
+
+  public void enrollInCourse(String courseId) {
+    Optional<Enrollment> enrollment = getEnrollment(courseId);
+    if (enrollment.isPresent()) {
+      enrollment.get().setStatus(Enrollment.Status.ENROLLED);
+    } else {
+      createEnrollment(courseId, Enrollment.Status.ENROLLED);
+    }
+  }
+
+  public void enrollInCourse(Course course) {
+    enrollInCourse(course.getId());
+  }
+
+  public void dropEnrollment(String courseId) {
+    Optional<Enrollment> enrollment = getEnrollment(courseId);
+    if (enrollment.isPresent()) {
+      enrollment.get().setStatus(Enrollment.Status.DROPPED);
+    }
+  }
+
+  public void dropEnrollment(Course course) {
+    dropEnrollment(course.getId());
   }
 
 }

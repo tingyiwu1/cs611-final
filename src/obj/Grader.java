@@ -1,6 +1,7 @@
 package obj;
 
 import java.util.ArrayList;
+import java.util.Optional;
 
 import store.Store;
 
@@ -18,6 +19,14 @@ public class Grader extends User {
       courses.add(employment.getCourse());
     }
     return courses;
+  }
+
+  public Optional<Employment> getEmployment(String courseId) {
+    return store.get(Employment.class, getId() + "-" + courseId);
+  }
+
+  public Optional<Employment> getEmployment(Course course) {
+    return getEmployment(course.getId());
   }
 
 }

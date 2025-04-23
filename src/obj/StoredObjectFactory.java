@@ -28,8 +28,8 @@ public class StoredObjectFactory {
     return new Assignment(store, id, name, courseId, categoryId, points, isPublished, dueDate);
   }
 
-  public Submission createSubmission(String assignmentId, String studentId, String content) {
-    return new Submission(store, assignmentId, studentId, content);
+  public Submission createSubmission(String assignmentId, String enrollmentId, String content) {
+    return new Submission(store, assignmentId, enrollmentId, content);
   }
 
   public Course createCourse(String instructorId, String courseId, String code, String name, Term term,

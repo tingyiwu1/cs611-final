@@ -32,101 +32,61 @@ public class StoreExample {
     Student dave = factory.createStudent("dave", "Dave");
     Student eve = factory.createStudent("eve", "Eve");
 
-    Course cs611 = factory.createCourse(
-        cpk.getId(),
+    Course cs611 = cpk.createCourse(
         "cs611-spring2025",
         "CS611",
         "Object Oriented Design and Development",
         spring2025,
         "This is a course description");
 
-    Category cs611Homework = factory.createCategory("homework", cs611.getId(), "Homework", 10);
-    Category cs611Midterm = factory.createCategory("midterm", cs611.getId(), "midterm", 20);
+    Category cs611Homework = cs611.createCategory("homework", "Homework", 10);
+    Category cs611Midterm = cs611.createCategory("midterm", "midterm", 20);
 
-    Assignment cs611Homework1 = factory.createAssignment(
-        "homework1",
-        "Tic-Tac-Toe-I",
-        cs611.getId(),
-        cs611Homework.getId(),
-        0,
-        true,
+    Assignment cs611Homework1 = cs611Homework.createAssignment("homework1", "Tic-Tac-Toe-I", 0, true,
         dateFormat.parse("01/28/2025"));
-    Assignment cs611Homework2 = factory.createAssignment(
-        "homework2",
-        "Game Infrastructure",
-        cs611.getId(),
-        cs611Homework.getId(),
-        100,
-        true,
+    Assignment cs611Homework2 = cs611Homework.createAssignment("homework2", "Game Infrastructure", 100, true,
         dateFormat.parse("02/14/2025"));
-    Assignment cs611MidtermExam = factory.createAssignment(
-        "midterm-written",
-        "Midterm-Written",
-        cs611.getId(),
-        cs611Midterm.getId(),
-        70,
-        true,
+    Assignment cs611MidtermExam = cs611Midterm.createAssignment("midterm-written", "Midterm-Written", 70, true,
         dateFormat.parse("03/04/2025"));
-    Assignment cs611MidtermPracticum = factory.createAssignment(
-        "midterm-practicum",
-        "Midterm-Practicum",
-        cs611.getId(),
-        cs611Midterm.getId(),
-        50,
-        true,
+    Assignment cs611MidtermPracticum = cs611Midterm.createAssignment("midterm-practicum", "Midterm-Practicum", 50, true,
         dateFormat.parse("03/06/2025"));
 
-    factory.createEmployment(alice.getId(), cs611.getId());
-    factory.createEmployment(bob.getId(), cs611.getId());
-    factory.createEnrollment(charlie.getId(), cs611.getId(), Enrollment.Status.ENROLLED);
-    factory.createEnrollment(dave.getId(), cs611.getId(), Enrollment.Status.DROPPED);
-    factory.createEnrollment(eve.getId(), cs611.getId(), Enrollment.Status.WAITLISTED);
+    cs611.createEmployment(alice);
+    cs611.createEmployment(bob);
 
-    Submission charlieTTT = factory.createSubmission(cs611Homework1.getId(), charlie.getId(),
-        "This is my tic tac toe submission");
-    factory.createSubmission(cs611Homework2.getId(), charlie.getId(), "This is my game infrastructure submission");
-    factory.createSubmission(cs611MidtermExam.getId(), charlie.getId(), "This is my midterm exam submission");
-    factory.createSubmission(cs611MidtermPracticum.getId(), charlie.getId(), "This is my midterm practicum submission");
+    Enrollment charlieCs611 = cs611.enrollStudent(charlie);
+    cs611.createEnrollment(dave, Enrollment.Status.DROPPED);
+    cs611.enrollStudent(eve);
+
+    Submission charlieTTT = charlieCs611.createSubmission(cs611Homework1, "This is my tic tac toe submission");
+    charlieCs611.createSubmission(cs611Homework2, "This is my game infrastructure submission");
+    charlieCs611.createSubmission(cs611MidtermExam, "This is my midterm exam submission");
+    charlieCs611.createSubmission(cs611MidtermPracticum, "This is my midterm practicum submission");
 
     charlieTTT.setGrade(80);
     charlieTTT.setSimilarityScore(3);
 
-    Course cs112 = factory.createCourse(
-        cpk.getId(),
+    Course cs112 = cpk.createCourse(
         "cs112-spring2025",
         "CS112",
         "Introduction to Computer Science II",
         spring2025,
         "This is a course description");
 
-    factory.createEmployment(alice.getId(), cs112.getId());
-    factory.createEnrollment(eve.getId(), cs112.getId(), Enrollment.Status.ENROLLED);
+    cs112.createEmployment(alice);
+    Enrollment eveCs112 = cs112.enrollStudent(eve);
 
-    Category cs112Homework = factory.createCategory("homework", cs112.getId(), "Homework", 10);
-    Category cs112Midterm = factory.createCategory("midterm", cs112.getId(), "midterm", 20);
+    Category cs112Homework = cs112.createCategory("homework", "Homework", 10);
+    cs112.createCategory("midterm", "midterm", 20);
 
-    Assignment cs112Homework1 = factory.createAssignment(
-        "ps1p1",
-        "PS 1: Part I",
-        cs112.getId(),
-        cs112Homework.getId(),
-        100,
-        true,
+    Assignment cs112Homework1 = cs112Homework.createAssignment("homework1", "Tic-Tac-Toe-I", 0, true,
         dateFormat.parse("01/28/2025"));
-    Assignment cs112Homework2 = factory.createAssignment(
-        "ps1p2",
-        "PS 1: Part II",
-        cs112.getId(),
-        cs112Homework.getId(),
-        100,
-        true,
-        dateFormat.parse("01/28/2025"));
+    Assignment cs112Homework2 = cs112Homework.createAssignment("homework2", "Game Infrastructure", 100, true,
+        dateFormat.parse("02/14/2025"));
 
-    Submission evePS1 = factory.createSubmission(cs112Homework1.getId(), eve.getId(),
-        "This is my PS 1 submission part 1");
+    Submission evePS1 = eveCs112.createSubmission(cs112Homework1, "This is my PS 1 submission part 1");
 
-    factory.createSubmission(cs112Homework2.getId(), eve.getId(),
-        "This is my PS 1 submission part 2");
+    eveCs112.createSubmission(cs112Homework2, "This is my PS 1 submission part 2");
 
     evePS1.setGrade(80);
     evePS1.setSimilarityScore(3);

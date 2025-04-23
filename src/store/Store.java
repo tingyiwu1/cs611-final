@@ -20,6 +20,12 @@ public interface Store {
    */
   public <T extends StoredObject> Optional<T> get(Class<T> clazz, String id);
 
+  public static class IDExistsException extends RuntimeException {
+    public IDExistsException(String message) {
+      super(message);
+    }
+  }
+
   /**
    * Inserts a new object into the store. Throws an exception if an object with
    * the same id already exists.

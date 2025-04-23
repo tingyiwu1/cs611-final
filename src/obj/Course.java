@@ -1,6 +1,8 @@
 package obj;
 
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Optional;
 
 import store.Store;
 import store.StoredObject;
@@ -79,7 +81,7 @@ public class Course extends StoredObject {
     public ArrayList<Assignment> getAssignmentsInCategory(Category category) {
         ArrayList<Assignment> assignmentsInCategory = new ArrayList<>();
         for (Assignment assignment : assignments) {
-            if (assignment.getCategory() == category) {
+            if (assignment.getCategory().getId() == category.getId()) {
                 assignmentsInCategory.add(assignment);
             }
         }
@@ -94,6 +96,60 @@ public class Course extends StoredObject {
         ArrayList<Category> categoriesList = new ArrayList<>();
         categories.forEach(categoriesList::add);
         return categoriesList;
+    }
+
+    public Optional<Employment> getEmployment(String graderId) {
+        return store.get(Employment.class, graderId + "-" + getId());
+    }
+
+    public Optional<Employment> getEmployment(Grader grader) {
+        return getEmployment(grader.getId());
+    }
+
+    public Optional<Enrollment> getEnrollment(String studentId) {
+        return store.get(Enrollment.class, studentId + "-" + getId());
+    }
+
+    public Optional<Enrollment> getEnrollment(Student student) {
+        return getEnrollment(student.getId());
+    }
+
+    public Category createCategory(String categoryId, String name, int weight) {
+        return new Category(store, categoryId, getId(), name, weight);
+    }
+
+    public Assignment createAssignment(String assignmentId, String name, String categoryId, int points,
+            boolean isPublished, Date dueDate) {
+        return new Assignment(store, assignmentId, name, getId(), categoryId, points, isPublished, dueDate);
+    }
+
+    public Assignment createAssignment(String assignmentId, String name, Category category, int points,
+            boolean isPublished, Date dueDate) {
+        return createAssignment(assignmentId, name, category.getId(), points, isPublished, dueDate);
+    }
+
+    public Enrollment createEnrollment(String studentId, Enrollment.Status status) {
+        return new Enrollment(store, studentId, getId(), status);
+    }
+
+    public Enrollment createEnrollment(Student student, Enrollment.Status status) {
+        return createEnrollment(student.getId(), status);
+    }
+
+    public Enrollment enrollStudent(String studentId) {
+        return createEnrollment(studentId, Enrollment.Status.ENROLLED);
+    }
+
+    public Enrollment enrollStudent(Student student) {
+        return enrollStudent(student.getId());
+    }
+
+    public Employment createEmployment(String graderId) {
+        return new Employment(store, graderId, getId());
+    }
+
+    public Employment createEmployment(Grader grader) {
+        return createEmployment(grader.getId());
     }
 
     @Override

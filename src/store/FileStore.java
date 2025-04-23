@@ -1,10 +1,12 @@
 package store;
 
 import java.io.IOException;
+import java.io.InvalidClassException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -29,11 +31,14 @@ public class FileStore implements Store {
     HashMap<Class<? extends StoredObject>, HashMap<String, StoredObject>> repositoryMap;
     try (ObjectInputStream ois = new ObjectInputStream(Files.newInputStream(dataPath))) {
       repositoryMap = (HashMap<Class<? extends StoredObject>, HashMap<String, StoredObject>>) ois.readObject();
-    } catch (IOException e) {
-      repositoryMap = new HashMap<>();
-    } catch (ClassNotFoundException e) {
+    } catch (ClassNotFoundException | InvalidClassException e) {
       e.printStackTrace();
       throw new RuntimeException("Failed to read data file", e);
+    } catch (NoSuchFileException e) {
+      repositoryMap = new HashMap<>();
+    } catch (IOException e) {
+      e.printStackTrace();
+      throw new RuntimeException("IOException", e);
     }
     // StoredObject.store is transient, so we need to set it manually
     for (HashMap<String, StoredObject> repository : repositoryMap.values()) {
@@ -86,7 +91,7 @@ public class FileStore implements Store {
   public <T extends StoredObject> void putNew(T obj) {
     HashMap<String, StoredObject> repository = repositoryMap.computeIfAbsent(obj.getClass(), k -> new HashMap<>());
     if (repository.containsKey(obj.getId())) {
-      throw new IllegalArgumentException(
+      throw new IDExistsException(
           obj.getClass().getSimpleName() + " with ID " + obj.getId() + " already exists.");
     }
     repository.put(obj.getId(), obj);
@@ -103,6 +108,9 @@ public class FileStore implements Store {
     HashMap<String, StoredObject> repository = repositoryMap.get(obj.getClass());
     if (repository != null) {
       repository.remove(obj.getId());
+      if (repository.size() == 0) {
+        repositoryMap.remove(obj.getClass());
+      }
     }
   }
 
@@ -111,6 +119,9 @@ public class FileStore implements Store {
     HashMap<String, StoredObject> repository = repositoryMap.get(clazz);
     if (repository != null) {
       repository.remove(id);
+      if (repository.size() == 0) {
+        repositoryMap.remove(clazz);
+      }
     }
   }
 
@@ -126,6 +137,20 @@ public class FileStore implements Store {
       }
     }
     return list;
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    sb.append("FileStore:\n");
+    for (Class<? extends StoredObject> clazz : repositoryMap.keySet()) {
+      sb.append("\t").append(clazz.getSimpleName()).append(":\n");
+      HashMap<String, StoredObject> repository = repositoryMap.get(clazz);
+      for (String id : repository.keySet()) {
+        sb.append("\t\t").append(id).append("\n");
+      }
+    }
+    return sb.toString();
   }
 
 }

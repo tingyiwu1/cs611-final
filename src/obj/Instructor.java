@@ -17,4 +17,8 @@ public class Instructor extends User {
     courses.forEach(coursesList::add);
     return coursesList;
   }
+
+  public Course createCourse(String courseId, String code, String name, Term term, String description) {
+    return new Course(store, getId(), courseId, code, name, term, description);
+  }
 }

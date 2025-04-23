@@ -1,6 +1,7 @@
 package obj;
 
 import java.util.ArrayList;
+import java.util.Date;
 
 import store.Store;
 import store.StoredObject;
@@ -47,5 +48,10 @@ public class Category extends StoredObject {
 
   public void setWeight(int weight) {
     this.weight = weight;
+  }
+
+  public Assignment createAssignment(String assignmentId, String name, int points, boolean isPublished,
+      Date dueDate) {
+    return new Assignment(store, assignmentId, name, getCourseId(), getId(), points, isPublished, dueDate);
   }
 }

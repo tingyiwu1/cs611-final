@@ -10,15 +10,15 @@ public class Submission extends StoredObject {
   private String content;
   private Integer grade;
   private Integer similarityScore;
-  private final ForeignKey<Student> student = new ForeignKey<>(Student.class); // owned by
+  private final ForeignKey<Enrollment> enrollment = new ForeignKey<>(Enrollment.class); // owned by
   private final ForeignKey<Assignment> assignment = new ForeignKey<>(Assignment.class); // owned by
 
-  public Submission(Store store, String assignmentId, String studentId, String content) {
-    super(store, studentId + "-" + assignmentId);
+  public Submission(Store store, String assignmentId, String enrollmentId, String content) {
+    super(store, enrollmentId + "-" + assignmentId);
     this.content = content;
     this.grade = null;
     this.similarityScore = null;
-    this.student.setId(studentId);
+    this.enrollment.setId(enrollmentId);
     this.assignment.setId(assignmentId);
   }
 
@@ -26,8 +26,12 @@ public class Submission extends StoredObject {
     return assignment.get();
   }
 
+  public Enrollment getEnrollment() {
+    return enrollment.get();
+  }
+
   public Student getStudent() {
-    return student.get();
+    return getEnrollment().getStudent();
   }
 
   public String getContent() {

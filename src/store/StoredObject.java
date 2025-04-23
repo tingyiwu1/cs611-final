@@ -69,7 +69,7 @@ public abstract class StoredObject implements Serializable, Identifiable {
 
     public void setId(String id) {
       if (!store.get(type, id).isPresent()) {
-        throw new IllegalArgumentException("Object not found in store");
+        throw new IllegalArgumentException(type.getSimpleName() + " with ID " + id + " does not exist");
       }
       this.id = id;
     }
