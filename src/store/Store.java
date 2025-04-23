@@ -1,5 +1,6 @@
 package store;
 
+import java.util.ArrayList;
 import java.util.Optional;
 
 public interface Store {
@@ -59,5 +60,5 @@ public interface Store {
    * @param <T>   Type of the objects to be retrieved
    * @param clazz Class of the objects to be retrieved
    */
-  public <T extends StoredObject> void getAll(Class<T> clazz);
+  public <T extends StoredObject> ArrayList<T> getAll(Class<T> clazz);
 }

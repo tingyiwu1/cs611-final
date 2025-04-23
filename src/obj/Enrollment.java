@@ -8,15 +8,27 @@ public class Enrollment extends StoredObject {
     ENROLLED, WAITLISTED, DROPPED
   }
 
-  public final Student student; // owned by
-  public final Course course; // owned by
-  public final Status status;
+  private final ForeignKey<Student> student;
+  private final ForeignKey<Course> course;
+  private final Status status;
 
-  public Enrollment(Store store, Student student, Course course, Status status) {
+  public Enrollment(Store store, String studentId, String courseId, Status status) {
     super(store);
-    this.student = student;
-    this.course = course;
+    this.student = new ForeignKey<>(Student.class, studentId);
+    this.course = new ForeignKey<>(Course.class, courseId);
     this.status = status;
+  }
+
+  public Student getStudent() {
+    return student.get();
+  }
+
+  public Course getCourse() {
+    return course.get();
+  }
+
+  public Status getStatus() {
+    return status;
   }
 
   @Override

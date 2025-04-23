@@ -2,31 +2,31 @@ package obj;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 
 import store.Store;
 import store.StoredObject;
 
-// owned by course
 public class Assignment extends StoredObject {
-  public final String id;
-  public String name;
-  public Category category;
-  public int points;
-  public boolean isPublished;
-  public Date dueDate;
-  public HashMap<String, Submission> submissions; // deletes
+  private final String id;
+  private String name;
+  private int points;
+  private boolean isPublished;
+  private Date dueDate;
+  private final ForeignKey<Course> course;
+  private final ForeignKey<Category> category;
+  private final ForeignSet<Submission> submissions;
 
-  public Assignment(Store store, String id, String name, Category category, int points, boolean isPublished,
-      Date dueDate) {
+  public Assignment(Store store, String id, String name, String courseId, String categoryId, int points,
+      boolean isPublished, Date dueDate) {
     super(store);
     this.id = id;
     this.name = name;
-    this.category = category;
     this.points = points;
     this.isPublished = isPublished;
     this.dueDate = dueDate;
-    this.submissions = new HashMap<>();
+    this.course = new ForeignKey<>(Course.class, courseId);
+    this.category = new ForeignKey<>(Category.class, categoryId);
+    this.submissions = new ForeignSet<>(Submission.class, "assignment", id);
   }
 
   public String getName() {
@@ -38,11 +38,14 @@ public class Assignment extends StoredObject {
   }
 
   public Category getCategory() {
-    return category;
+    return category.get();
   }
 
   public void setCategory(Category category) {
-    this.category = category;
+    if (category.getCourseId() != course.getId()) {
+      throw new IllegalArgumentException("Category does not belong to this course");
+    }
+    this.category.setId(category.getId());
   }
 
   public int getPoints() {
@@ -70,25 +73,14 @@ public class Assignment extends StoredObject {
   }
 
   public ArrayList<Submission> getSubmissions() {
-    return new ArrayList<>(submissions.values());
+    ArrayList<Submission> submissionsList = new ArrayList<>();
+    submissions.forEach(submissionsList::add);
+    return submissionsList;
   }
 
   @Override
   public String getId() {
     return id;
   }
-
-  // public static Assignment[] getSampleAssignments() {
-  // return new Assignment[] {
-  // new Assignment("1", "Homework 1", "Assignment", 100, true, new Date(),
-  // new String[] { "submission1", "submission2" }),
-  // new Assignment("2", "Homework 2", "Assignment", 100, true, new Date(),
-  // new String[] { "submission1", "submission2" }),
-  // new Assignment("3", "Homework 3", "Assignment", 100, true, new Date(),
-  // new String[] { "submission1", "submission2" }),
-  // new Assignment("4", "Homework 4", "Assignment", 100, true, new Date(),
-  // new String[] { "submission1", "submission2" }),
-  // };
-  // }
 
 }

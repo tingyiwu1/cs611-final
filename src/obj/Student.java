@@ -1,20 +1,32 @@
 package obj;
 
-import store.StoredObject;
+import java.util.ArrayList;
+
 import store.Store;
 
-public class Student extends StoredObject {
-  public final String id;
-  public final String name;
+public class Student extends User {
+
+  private final ForeignSet<Enrollment> enrollments;
 
   public Student(Store store, String id, String name) {
-    super(store);
-    this.id = id;
-    this.name = name;
+    super(store, id, name);
+    this.enrollments = new ForeignSet<>(Enrollment.class, "student", id);
   }
 
-  @Override
-  public String getId() {
-    return id;
+  public ArrayList<Enrollment> getEnrollments() {
+    ArrayList<Enrollment> enrollmentsList = new ArrayList<>();
+    enrollments.forEach(enrollmentsList::add);
+    return enrollmentsList;
   }
+
+  public ArrayList<Course> getEnrolledCourses() {
+    ArrayList<Course> courses = new ArrayList<>();
+    for (Enrollment enrollment : enrollments) {
+      if (enrollment.getStatus() == Enrollment.Status.ENROLLED) {
+        courses.add(enrollment.getCourse());
+      }
+    }
+    return courses;
+  }
+
 }

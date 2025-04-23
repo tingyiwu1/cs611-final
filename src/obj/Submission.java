@@ -7,27 +7,27 @@ import store.StoredObject;
 
 public class Submission extends StoredObject {
 
-  private final Assignment assignment; // owned by
-  private final Student student; // owned by
   private String content;
   private Optional<Integer> grade;
   private Optional<Integer> similarityScore;
+  private final ForeignKey<Student> student;
+  private final ForeignKey<Assignment> assignment;
 
-  public Submission(Store store, Assignment assignment, Student student, String content) {
+  public Submission(Store store, String assignmentId, String studentId, String content) {
     super(store);
-    this.assignment = assignment;
-    this.student = student;
     this.content = content;
     this.grade = Optional.empty();
     this.similarityScore = Optional.empty();
+    this.student = new ForeignKey<>(Student.class, studentId);
+    this.assignment = new ForeignKey<>(Assignment.class, assignmentId);
   }
 
   public Assignment getAssignment() {
-    return assignment;
+    return assignment.get();
   }
 
   public Student getStudent() {
-    return student;
+    return student.get();
   }
 
   public String getContent() {

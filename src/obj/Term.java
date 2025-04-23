@@ -9,13 +9,25 @@ public class Term extends StoredObject {
     SPRING, SUMMER, FALL, WINTER
   }
 
-  public final Season season;
-  public final int year;
+  private final Season season;
+  private final int year;
 
   public Term(Store store, Season season, int year) {
     super(store);
     this.season = season;
     this.year = year;
+  }
+
+  public Season getSeason() {
+    return season;
+  }
+
+  public int getYear() {
+    return year;
+  }
+
+  public String getName() {
+    return season.toString() + " " + year;
   }
 
   @Override
