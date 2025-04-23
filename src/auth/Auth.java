@@ -2,10 +2,11 @@ package auth;
 
 import java.util.Optional;
 
+import obj.Instructor;
 import obj.User;
 
 public class Auth implements IAuth {
-  private static final Auth instance = new Auth();
+  private static final Auth INSTANCE = new Auth();
 
   private Optional<User> user;
 
@@ -19,9 +20,9 @@ public class Auth implements IAuth {
   }
 
   @Override
-  public void login(String username, String password) {
+  public void login(String id) {
     // placeholder
-    user = Optional.of(new User(1, "John Doe", User.Role.STUDENT));
+    user = Optional.of(new Instructor(id, "CPK"));
   }
 
   @Override

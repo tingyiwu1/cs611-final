@@ -37,7 +37,7 @@ public class CourseListPanel extends JPanel {
         gridPanel.setBorder(new EmptyBorder(0, 20, 0, 20));
     
         for (Course course : courses) {
-            if (course.getSemester().equals(semester)) {
+            if (course.getTerm().equals(semester)) {
                 gridPanel.add(createCourseCard(course));
             }
         }

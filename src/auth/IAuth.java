@@ -7,7 +7,7 @@ public interface IAuth {
 
   // I think we don't need username/password, just login with a single string
   // identifier
-  void login(String username, String password);
+  void login(String id);
 
   void logout();
 
