@@ -5,13 +5,13 @@ import store.Store;
 
 public class Employment extends StoredObject {
 
-  private final ForeignKey<Grader> grader;
-  private final ForeignKey<Course> course;
+  private final ForeignKey<Grader> grader = new ForeignKey<>(Grader.class); // owned by
+  private final ForeignKey<Course> course = new ForeignKey<>(Course.class); // owned by
 
   public Employment(Store store, String graderId, String courseId) {
-    super(store);
-    this.grader = new ForeignKey<>(Grader.class, graderId);
-    this.course = new ForeignKey<>(Course.class, courseId);
+    super(store, graderId + "-" + courseId);
+    this.grader.setId(graderId);
+    this.course.setId(courseId);
   }
 
   public Grader getGrader() {
@@ -22,8 +22,4 @@ public class Employment extends StoredObject {
     return course.get();
   }
 
-  @Override
-  public String getId() {
-    return grader.getId() + course.getId();
-  }
 }

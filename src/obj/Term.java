@@ -1,9 +1,8 @@
 package obj;
 
-import store.Store;
-import store.StoredObject;
+import java.io.Serializable;
 
-public class Term extends StoredObject {
+public class Term implements Serializable {
 
   public static enum Season {
     SPRING, SUMMER, FALL, WINTER
@@ -12,8 +11,7 @@ public class Term extends StoredObject {
   private final Season season;
   private final int year;
 
-  public Term(Store store, Season season, int year) {
-    super(store);
+  public Term(Season season, int year) {
     this.season = season;
     this.year = year;
   }
@@ -28,11 +26,6 @@ public class Term extends StoredObject {
 
   public String getName() {
     return season.toString() + " " + year;
-  }
-
-  @Override
-  public String getId() {
-    return season.toString() + year;
   }
 
   public boolean equals(Term other) {

@@ -6,11 +6,10 @@ import store.Store;
 
 public class Instructor extends User {
 
-  private final ForeignSet<Course> courses;
+  private final ForeignSet<Course> courses = new ForeignSet<>(Course.class, "instructor", this); // owned
 
   public Instructor(Store store, String id, String name) {
     super(store, id, name);
-    this.courses = new ForeignSet<>(Course.class, "instructor", id);
   }
 
   public ArrayList<Course> getCourses() {

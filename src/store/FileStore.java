@@ -12,34 +12,47 @@ import java.util.HashMap;
 import java.util.Optional;
 
 public class FileStore implements Store {
-  private static final String FILE_NAME = "data.dat";
 
   private final Path dataPath;
   private final HashMap<Class<? extends StoredObject>, HashMap<String, StoredObject>> repositoryMap;
 
   @SuppressWarnings("unchecked")
-  private FileStore(String dataDir) {
+  public FileStore(String dataDir, String fileName) {
     try {
       Files.createDirectories(Paths.get(dataDir));
     } catch (IOException e) {
       e.printStackTrace();
       throw new RuntimeException("Failed to create data directory", e);
     }
-    this.dataPath = Paths.get(dataDir, FILE_NAME);
+    this.dataPath = Paths.get(dataDir, fileName);
 
     HashMap<Class<? extends StoredObject>, HashMap<String, StoredObject>> repositoryMap;
     try (ObjectInputStream ois = new ObjectInputStream(Files.newInputStream(dataPath))) {
       repositoryMap = (HashMap<Class<? extends StoredObject>, HashMap<String, StoredObject>>) ois.readObject();
-    } catch (IOException | ClassNotFoundException e) {
+    } catch (IOException e) {
       repositoryMap = new HashMap<>();
+    } catch (ClassNotFoundException e) {
+      e.printStackTrace();
+      throw new RuntimeException("Failed to read data file", e);
     }
+    // StoredObject.store is transient, so we need to set it manually
     for (HashMap<String, StoredObject> repository : repositoryMap.values()) {
       for (StoredObject obj : repository.values()) {
+        Class<?> clazz = obj.getClass();
+        while (clazz != null) {
+          if (clazz.equals(StoredObject.class)) {
+            break;
+          }
+          clazz = clazz.getSuperclass();
+        }
+        if (clazz == null) {
+          throw new RuntimeException("Failed to find StoredObject class");
+        }
         try {
-          Field f = obj.getClass().getDeclaredField("store");
+          Field f = clazz.getDeclaredField("store");
           f.setAccessible(true);
           f.set(obj, this);
-        } catch (NoSuchFieldException | IllegalArgumentException | IllegalAccessException e) {
+        } catch (NoSuchFieldException | IllegalAccessException e) {
           e.printStackTrace();
           throw new RuntimeException("Failed to set store field", e);
         }
@@ -59,11 +72,12 @@ public class FileStore implements Store {
   }
 
   @Override
-  @SuppressWarnings("unchecked")
   public <T extends StoredObject> Optional<T> get(Class<T> clazz, String id) {
     HashMap<String, StoredObject> repository = repositoryMap.get(clazz);
     if (repository != null) {
-      return Optional.ofNullable((T) repository.get(id));
+      @SuppressWarnings("unchecked")
+      T obj = (T) repository.get(id);
+      return Optional.ofNullable(obj);
     }
     return Optional.empty();
   }
@@ -73,7 +87,7 @@ public class FileStore implements Store {
     HashMap<String, StoredObject> repository = repositoryMap.computeIfAbsent(obj.getClass(), k -> new HashMap<>());
     if (repository.containsKey(obj.getId())) {
       throw new IllegalArgumentException(
-          obj.getClass().getName() + " with ID " + obj.getId() + " already exists. Use upsert() instead.");
+          obj.getClass().getSimpleName() + " with ID " + obj.getId() + " already exists.");
     }
     repository.put(obj.getId(), obj);
   }
@@ -86,20 +100,32 @@ public class FileStore implements Store {
 
   @Override
   public <T extends StoredObject> void delete(T obj) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'delete'");
+    HashMap<String, StoredObject> repository = repositoryMap.get(obj.getClass());
+    if (repository != null) {
+      repository.remove(obj.getId());
+    }
   }
 
   @Override
   public <T extends StoredObject> void deleteById(Class<T> clazz, String id) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'deleteById'");
+    HashMap<String, StoredObject> repository = repositoryMap.get(clazz);
+    if (repository != null) {
+      repository.remove(id);
+    }
   }
 
   @Override
   public <T extends StoredObject> ArrayList<T> getAll(Class<T> clazz) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'getAll'");
+    HashMap<String, StoredObject> repository = repositoryMap.get(clazz);
+    ArrayList<T> list = new ArrayList<>();
+    if (repository != null) {
+      for (StoredObject obj : repository.values()) {
+        @SuppressWarnings("unchecked")
+        T castedObj = (T) obj;
+        list.add(castedObj);
+      }
+    }
+    return list;
   }
 
 }

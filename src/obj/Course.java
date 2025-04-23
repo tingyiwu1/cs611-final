@@ -6,28 +6,24 @@ import store.Store;
 import store.StoredObject;
 
 public class Course extends StoredObject {
-    private final String courseId;
     private String code;
     private String name;
     private Term term;
     private String description;
-    private ForeignKey<Instructor> instructor;
-    private final ForeignSet<Enrollment> enrollments;
-    private final ForeignSet<Employment> employments;
-    private final ForeignSet<Assignment> assignments;
+    private final ForeignKey<Instructor> instructor = new ForeignKey<>(Instructor.class); // owned by
+    private final ForeignSet<Enrollment> enrollments = new ForeignSet<>(Enrollment.class, "course", this); // owned
+    private final ForeignSet<Employment> employments = new ForeignSet<>(Employment.class, "course", this); // owned
+    private final ForeignSet<Assignment> assignments = new ForeignSet<>(Assignment.class, "course", this); // owned
+    private final ForeignSet<Category> categories = new ForeignSet<>(Category.class, "course", this); // owned
 
-    public Course(Store store, String courseId, String code, String name, Term term, String description,
-            String instructorId) {
-        super(store);
-        this.courseId = courseId;
+    public Course(Store store, String instructorId, String courseId, String code, String name, Term term,
+            String description) {
+        super(store, courseId);
         this.code = code;
         this.name = name;
         this.term = term;
         this.description = description;
-        this.instructor = new ForeignKey<>(Instructor.class, instructorId);
-        this.enrollments = new ForeignSet<>(Enrollment.class, "course", courseId);
-        this.employments = new ForeignSet<>(Employment.class, "course", courseId);
-        this.assignments = new ForeignSet<>(Assignment.class, "course", courseId);
+        this.instructor.setId(instructorId);
     }
 
     public String getCode() {
@@ -94,13 +90,15 @@ public class Course extends StoredObject {
         return assignments.count();
     }
 
+    public ArrayList<Category> getCategories() {
+        ArrayList<Category> categoriesList = new ArrayList<>();
+        categories.forEach(categoriesList::add);
+        return categoriesList;
+    }
+
     @Override
     public String toString() {
         return code + " - " + name;
     }
 
-    @Override
-    public String getId() {
-        return courseId;
-    }
 }

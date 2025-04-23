@@ -4,72 +4,129 @@ import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Optional;
 
 public abstract class StoredObject implements Serializable, Identifiable {
   protected final transient Store store;
-  protected transient boolean isDeleted = false;
+  protected final String id;
+  private ArrayList<ForeignKey<?>> foreignKeys = new ArrayList<>();
+  private ArrayList<ForeignSet<?>> foreignSets = new ArrayList<>();
 
-  protected StoredObject(Store store) {
+  protected StoredObject(Store store, String id) {
     if (store == null) {
       throw new IllegalArgumentException("Store cannot be null");
     }
     this.store = store;
+    this.id = id;
     store.putNew(this);
   }
 
-  public class ForeignKey<T extends StoredObject> {
-    private final Class<T> type;
-    private String id;
+  @Override
+  public final String getId() {
+    return id;
+  }
 
-    public ForeignKey(Class<T> type, String id) {
+  public void delete() {
+    // System.out.println("Deleting " + this.getClass().getSimpleName() + " " + id);
+
+    // avoids deleting an object while iterating
+    ArrayList<StoredObject> objectsToDelete = new ArrayList<>();
+    for (ForeignSet<?> foreignSet : foreignSets) {
+      for (StoredObject obj : foreignSet) {
+        if (obj != this) {
+          objectsToDelete.add(obj);
+        }
+      }
+    }
+    for (StoredObject obj : objectsToDelete) {
+      obj.delete();
+    }
+
+    // if needed, we can use foreignKeys here to alert ForeignSets containing this
+    // object (probably needed if implementing caching or indices)
+
+    store.delete(this);
+  }
+
+  public class ForeignKey<T extends StoredObject> implements Serializable {
+    private final Class<T> type;
+    private String id = null;
+
+    public ForeignKey(Class<T> type) {
       this.type = type;
-      this.id = id;
+
+      StoredObject.this.foreignKeys.add(this);
     }
 
     public String getId() {
+      if (id == null) {
+        throw new IllegalArgumentException("ID is not set");
+      }
       return id;
     }
 
     public void setId(String id) {
+      if (!store.get(type, id).isPresent()) {
+        throw new IllegalArgumentException("Object not found in store");
+      }
       this.id = id;
     }
 
     public T get() {
-      return store.get(type, id).orElse(null);
+      Optional<T> obj = store.get(type, getId());
+      assert obj.isPresent() : "Object not found in store";
+      return obj.orElse(null);
     }
   }
 
-  public class ForeignSet<T extends StoredObject> implements Iterable<T> {
+  public class ForeignSet<T extends StoredObject> implements Iterable<T>, Serializable {
     public final Class<T> type;
-    private final Field field;
-    private final String id;
+    private final String fieldName;
+    private final Identifiable referent;
+    private transient Field field = null;
 
-    public ForeignSet(Class<T> type, String fieldName, String id) {
+    public ForeignSet(Class<T> type, String fieldName, Identifiable referent) {
       this.type = type;
-      this.id = id;
+      this.referent = referent;
+      this.fieldName = fieldName;
+      getField();
+      StoredObject.this.foreignSets.add(this);
+    }
+
+    private Field getField() {
+      if (field != null) {
+        return field;
+      }
+      Field field;
       try {
         field = type.getDeclaredField(fieldName);
       } catch (NoSuchFieldException e) {
         e.printStackTrace();
         throw new RuntimeException("Field not found", e);
       }
+      RuntimeException wrongFieldException = new IllegalArgumentException(
+          type.getSimpleName() + "." + fieldName + " must be of type ForeignKey<"
+              + referent.getClass().getSimpleName() + ">");
       if (!field.getType().equals(ForeignKey.class)) {
-        throw new IllegalArgumentException("Field must be of type ForeignKey<T>");
+        throw wrongFieldException;
       }
       Type genericType = field.getGenericType();
       if (!(genericType instanceof ParameterizedType)) {
-        throw new IllegalArgumentException("Field must be of type ForeignKey<T>");
+        throw wrongFieldException;
       }
       Type[] typeArgs = ((ParameterizedType) genericType).getActualTypeArguments();
       if (typeArgs.length != 1 || !(typeArgs[0] instanceof Class<?>)) {
-        throw new IllegalArgumentException("Field must be of type ForeignKey<T>");
+        throw wrongFieldException;
       }
       Class<?> fieldType = (Class<?>) typeArgs[0];
-      if (!type.isAssignableFrom(fieldType)) {
-        throw new IllegalArgumentException("Field must be of type ForeignKey<T>");
+      if (!referent.getClass().isAssignableFrom(fieldType)) {
+        throw wrongFieldException;
       }
       field.setAccessible(true);
+      this.field = field;
+      return field;
     }
 
     public int count() {
@@ -92,13 +149,13 @@ public abstract class StoredObject implements Serializable, Identifiable {
           while (iterator.hasNext()) {
             T obj = iterator.next();
             try {
-              @SuppressWarnings("unchecked") // checked in constructor
-              ForeignKey<T> foreignKey = (ForeignKey<T>) field.get(obj);
-              if (foreignKey.id.equals(id)) {
+              @SuppressWarnings("unchecked") // checked in getField
+              ForeignKey<T> foreignKey = (ForeignKey<T>) getField().get(obj);
+              if (foreignKey.getId().equals(referent.getId())) {
                 return obj;
               }
             } catch (IllegalAccessException e) {
-              // Should be impossible since we set field accessible in constructor
+              // Should be impossible since we set field accessible in getField
               e.printStackTrace();
               throw new RuntimeException("Field access error", e);
             }

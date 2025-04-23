@@ -1,21 +1,22 @@
 package obj;
 
+import java.util.ArrayList;
+
 import store.Store;
 import store.StoredObject;
 
 public class Category extends StoredObject {
 
-  private final String categoryId;
   private String name;
   private int weight;
-  private final ForeignKey<Course> course;
+  private final ForeignKey<Course> course = new ForeignKey<>(Course.class); // owned by
+  private final ForeignSet<Assignment> assignments = new ForeignSet<>(Assignment.class, "category", this); // owned
 
-  public Category(Store store, String categoryId, String courseId, String name, int weight) {
-    super(store);
-    this.categoryId = categoryId;
+  public Category(Store store, String id, String courseId, String name, int weight) {
+    super(store, courseId + "-" + id);
     this.name = name;
     this.weight = weight;
-    this.course = new ForeignKey<>(Course.class, courseId);
+    this.course.setId(courseId);
   }
 
   public String getCourseId() {
@@ -24,6 +25,12 @@ public class Category extends StoredObject {
 
   public Course getCourse() {
     return course.get();
+  }
+
+  public ArrayList<Assignment> getAssignments() {
+    ArrayList<Assignment> assignmentsList = new ArrayList<>();
+    assignments.forEach(assignmentsList::add);
+    return assignmentsList;
   }
 
   public String getName() {
@@ -41,10 +48,4 @@ public class Category extends StoredObject {
   public void setWeight(int weight) {
     this.weight = weight;
   }
-
-  @Override
-  public String getId() {
-    return categoryId;
-  }
-
 }

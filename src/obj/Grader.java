@@ -6,11 +6,10 @@ import store.Store;
 
 public class Grader extends User {
 
-  private final ForeignSet<Employment> employments;
+  private final ForeignSet<Employment> employments = new ForeignSet<>(Employment.class, "grader", this); // owned
 
   public Grader(Store store, String id, String name) {
     super(store, id, name);
-    this.employments = new ForeignSet<>(Employment.class, "grader", id);
   }
 
   public ArrayList<Course> getCourses() {

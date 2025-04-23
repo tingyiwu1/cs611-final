@@ -8,14 +8,14 @@ public class Enrollment extends StoredObject {
     ENROLLED, WAITLISTED, DROPPED
   }
 
-  private final ForeignKey<Student> student;
-  private final ForeignKey<Course> course;
+  private final ForeignKey<Student> student = new ForeignKey<>(Student.class); // owned by
+  private final ForeignKey<Course> course = new ForeignKey<>(Course.class); // owned by
   private final Status status;
 
   public Enrollment(Store store, String studentId, String courseId, Status status) {
-    super(store);
-    this.student = new ForeignKey<>(Student.class, studentId);
-    this.course = new ForeignKey<>(Course.class, courseId);
+    super(store, studentId + "-" + courseId);
+    this.student.setId(studentId);
+    this.course.setId(courseId);
     this.status = status;
   }
 
@@ -31,8 +31,4 @@ public class Enrollment extends StoredObject {
     return status;
   }
 
-  @Override
-  public String getId() {
-    return student.getId() + course.getId();
-  }
 }

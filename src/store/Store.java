@@ -38,7 +38,9 @@ public interface Store {
   public <T extends StoredObject> void upsert(T obj);
 
   /**
-   * Deletes an object from the store.
+   * Deletes an object from the store. Unlike StoredObject.delete(), this does not
+   * consider foreign keys or foreign sets, so calling this directly could lead to
+   * broken states.
    * 
    * @param <T> Type of the object to be deleted
    * @param obj Object to be deleted
@@ -46,7 +48,9 @@ public interface Store {
   public <T extends StoredObject> void delete(T obj);
 
   /**
-   * Deletes an object from the store by its id.
+   * Deletes an object from the store by its id. Unlike StoredObject.delete(),
+   * this does not consider foreign keys or foreign sets, so calling this directly
+   * could lead to broken states.
    * 
    * @param <T>   Type of the object to be deleted
    * @param clazz Class of the object to be deleted

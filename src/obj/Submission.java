@@ -8,18 +8,18 @@ import store.StoredObject;
 public class Submission extends StoredObject {
 
   private String content;
-  private Optional<Integer> grade;
-  private Optional<Integer> similarityScore;
-  private final ForeignKey<Student> student;
-  private final ForeignKey<Assignment> assignment;
+  private Integer grade;
+  private Integer similarityScore;
+  private final ForeignKey<Student> student = new ForeignKey<>(Student.class); // owned by
+  private final ForeignKey<Assignment> assignment = new ForeignKey<>(Assignment.class); // owned by
 
   public Submission(Store store, String assignmentId, String studentId, String content) {
-    super(store);
+    super(store, studentId + "-" + assignmentId);
     this.content = content;
-    this.grade = Optional.empty();
-    this.similarityScore = Optional.empty();
-    this.student = new ForeignKey<>(Student.class, studentId);
-    this.assignment = new ForeignKey<>(Assignment.class, assignmentId);
+    this.grade = null;
+    this.similarityScore = null;
+    this.student.setId(studentId);
+    this.assignment.setId(assignmentId);
   }
 
   public Assignment getAssignment() {
@@ -39,28 +39,23 @@ public class Submission extends StoredObject {
   }
 
   public boolean isGraded() {
-    return grade.isPresent();
+    return grade != null;
   }
 
   public Optional<Integer> getGrade() {
-    return grade;
+    return Optional.ofNullable(grade);
   }
 
   public void setGrade(int grade) {
-    this.grade = Optional.of(grade);
+    this.grade = grade;
   }
 
   public Optional<Integer> getSimilarityScore() {
-    return similarityScore;
+    return Optional.ofNullable(similarityScore);
   }
 
   public void setSimilarityScore(int similarityScore) {
-    this.similarityScore = Optional.of(similarityScore);
-  }
-
-  @Override
-  public String getId() {
-    return assignment.getId() + student.getId();
+    this.similarityScore = similarityScore;
   }
 
 }

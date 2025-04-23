@@ -23,29 +23,34 @@ public class StoredObjectFactory {
     return new Grader(store, id, name);
   }
 
-  public Assignment createAssignment(String id, String name, Category category, int points, boolean isPublished,
-      Date dueDate) {
-    return new Assignment(store, id, name, category, points, isPublished, dueDate);
+  public Assignment createAssignment(String id, String name, String courseId, String categoryId, int points,
+      boolean isPublished, Date dueDate) {
+    return new Assignment(store, id, name, courseId, categoryId, points, isPublished, dueDate);
   }
 
-  public Submission createSubmission(Assignment assignment, Student student, String content) {
-    return new Submission(store, assignment, student, content);
+  public Submission createSubmission(String assignmentId, String studentId, String content) {
+    return new Submission(store, assignmentId, studentId, content);
   }
 
-  public Course createCourse(String courseId, String code, String name, Term term, String description) {
-    return new Course(store, courseId, code, name, term, description);
+  public Course createCourse(String instructorId, String courseId, String code, String name, Term term,
+      String description) {
+    return new Course(store, instructorId, courseId, code, name, term, description);
   }
 
-  public Enrollment createEnrollment(Student student, Course course, Enrollment.Status status) {
-    return new Enrollment(store, student, course, status);
+  public Enrollment createEnrollment(String studentId, String courseId, Enrollment.Status status) {
+    return new Enrollment(store, studentId, courseId, status);
   }
 
-  public Category createCategory(String categoryId, Course course, String name, int weight) {
-    return new Category(store, categoryId, course, name, weight);
+  public Employment createEmployment(String graderId, String courseId) {
+    return new Employment(store, graderId, courseId);
+  }
+
+  public Category createCategory(String categoryId, String courseId, String name, int weight) {
+    return new Category(store, categoryId, courseId, name, weight);
   }
 
   public Term createTerm(Term.Season season, int year) {
-    return new Term(store, season, year);
+    return new Term(season, year);
   }
 
 }

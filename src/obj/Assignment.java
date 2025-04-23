@@ -7,26 +7,23 @@ import store.Store;
 import store.StoredObject;
 
 public class Assignment extends StoredObject {
-  private final String id;
   private String name;
   private int points;
   private boolean isPublished;
   private Date dueDate;
-  private final ForeignKey<Course> course;
-  private final ForeignKey<Category> category;
-  private final ForeignSet<Submission> submissions;
+  private final ForeignKey<Course> course = new ForeignKey<>(Course.class); // owned by
+  private final ForeignKey<Category> category = new ForeignKey<>(Category.class); // owned by
+  private final ForeignSet<Submission> submissions = new ForeignSet<>(Submission.class, "assignment", this); // owned
 
   public Assignment(Store store, String id, String name, String courseId, String categoryId, int points,
       boolean isPublished, Date dueDate) {
-    super(store);
-    this.id = id;
+    super(store, courseId + "-" + id);
     this.name = name;
     this.points = points;
     this.isPublished = isPublished;
     this.dueDate = dueDate;
-    this.course = new ForeignKey<>(Course.class, courseId);
-    this.category = new ForeignKey<>(Category.class, categoryId);
-    this.submissions = new ForeignSet<>(Submission.class, "assignment", id);
+    this.course.setId(courseId);
+    this.category.setId(categoryId);
   }
 
   public String getName() {
@@ -77,10 +74,4 @@ public class Assignment extends StoredObject {
     submissions.forEach(submissionsList::add);
     return submissionsList;
   }
-
-  @Override
-  public String getId() {
-    return id;
-  }
-
 }
