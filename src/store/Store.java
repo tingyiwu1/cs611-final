@@ -3,15 +3,18 @@ package store;
 import java.util.ArrayList;
 import java.util.Optional;
 
+/**
+ * Interface for a store that manages the persistence of {@code StoredObjects}
+ */
 public interface Store {
 
   /**
-   * Saves the current state of the store.
+   * Persists the current state of the store.
    */
   public void save();
 
   /**
-   * Queries the store for an object of type T with the given id.
+   * Queries the store for an object of type {@code T} with the given id.
    * 
    * @param <T>   Type of the object to be retrieved
    * @param clazz Class of the object to be retrieved
@@ -44,9 +47,9 @@ public interface Store {
   public <T extends StoredObject> void upsert(T obj);
 
   /**
-   * Deletes an object from the store. Unlike StoredObject.delete(), this does not
-   * consider foreign keys or foreign sets, so calling this directly could lead to
-   * broken states.
+   * Deletes an object from the store. Unlike {@code StoredObject.delete()}, this
+   * does not consider foreign keys or foreign sets, so calling this directly
+   * could lead to broken states.
    * 
    * @param <T> Type of the object to be deleted
    * @param obj Object to be deleted
@@ -54,9 +57,9 @@ public interface Store {
   public <T extends StoredObject> void delete(T obj);
 
   /**
-   * Deletes an object from the store by its id. Unlike StoredObject.delete(),
-   * this does not consider foreign keys or foreign sets, so calling this directly
-   * could lead to broken states.
+   * Deletes an object from the store by its id. Unlike
+   * {@code StoredObject.delete()}, this does not consider foreign keys or foreign
+   * sets, so calling this directly could lead to broken states.
    * 
    * @param <T>   Type of the object to be deleted
    * @param clazz Class of the object to be deleted

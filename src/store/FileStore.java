@@ -13,13 +13,25 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Optional;
 
+/**
+ * Concrete implementation of the {@code Store} interface that uses a
+ * single file to store {@code StoredObjects}. It uses Java serialization to
+ * read and write the objects to the file.
+ */
 public class FileStore implements Store {
 
   private final Path dataPath;
+
+  /**
+   * The data structure that holds the stored objects and is written to the file.
+   * For each subclass of {@code StoredObject}, we maintain a repository, which
+   * itself is a {@code HashMap} of IDs to {@code StoredObject}s.
+   */
   private final HashMap<Class<? extends StoredObject>, HashMap<String, StoredObject>> repositoryMap;
 
   @SuppressWarnings("unchecked")
   public FileStore(String dataDir, String fileName) {
+    // Check if the data directory exists, if not, create it
     try {
       Files.createDirectories(Paths.get(dataDir));
     } catch (IOException e) {
@@ -28,6 +40,7 @@ public class FileStore implements Store {
     }
     this.dataPath = Paths.get(dataDir, fileName);
 
+    // Read the data file
     HashMap<Class<? extends StoredObject>, HashMap<String, StoredObject>> repositoryMap;
     try (ObjectInputStream ois = new ObjectInputStream(Files.newInputStream(dataPath))) {
       repositoryMap = (HashMap<Class<? extends StoredObject>, HashMap<String, StoredObject>>) ois.readObject();
@@ -40,9 +53,13 @@ public class FileStore implements Store {
       e.printStackTrace();
       throw new RuntimeException("IOException", e);
     }
-    // StoredObject.store is transient, so we need to set it manually
+
+    // StoredObject.store is transient, so we need to set it manually for all
+    // objects in the store
     for (HashMap<String, StoredObject> repository : repositoryMap.values()) {
       for (StoredObject obj : repository.values()) {
+
+        // Traverse up the class hierarchy to find the StoredObject class
         Class<?> clazz = obj.getClass();
         while (clazz != null) {
           if (clazz.equals(StoredObject.class)) {
@@ -53,6 +70,8 @@ public class FileStore implements Store {
         if (clazz == null) {
           throw new RuntimeException("Failed to find StoredObject class");
         }
+
+        // Set the store field to this instance
         try {
           Field f = clazz.getDeclaredField("store");
           f.setAccessible(true);
