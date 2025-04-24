@@ -99,9 +99,9 @@ public class StoreExample {
         populateStore(store);
       } catch (ParseException e) {
         e.printStackTrace();
-      } finally {
-        store.save();
+        throw new RuntimeException("Failed to populate store", e);
       }
+      store.save();
     }
     System.out.println(store);
     Instructor cpk = store.get(Instructor.class, "cpk").get();

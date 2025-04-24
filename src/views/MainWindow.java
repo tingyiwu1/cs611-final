@@ -1,12 +1,22 @@
 package views;
 
 import obj.Course;
+import store.FileStore;
+import store.Store;
+
 import javax.swing.*;
+
+import auth.Auth;
+
 import java.awt.*;
+import java.awt.event.WindowAdapter;
 import java.util.ArrayList;
 import java.util.List;
 
 public class MainWindow extends JFrame {
+    private final Store store;
+    private final Auth auth;
+
     private CardLayout cardLayout;
     private JPanel mainPanel;
 
@@ -14,8 +24,18 @@ public class MainWindow extends JFrame {
     private Course currentCourse;
 
     public MainWindow() {
+        store = new FileStore(System.getProperties().getProperty("user.home"), "data.dat");
+        auth = new Auth(store);
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent e) {
+                store.save();
+                MainWindow.this.dispose();
+                System.exit(0);
+            }
+        });
+
         setTitle("Course Management System");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(800, 600);
         setLocationRelativeTo(null);
 

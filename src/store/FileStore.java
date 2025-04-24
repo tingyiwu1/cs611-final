@@ -92,6 +92,7 @@ public class FileStore implements Store {
       oos.writeObject(repositoryMap);
     } catch (IOException e) {
       e.printStackTrace();
+      throw new RuntimeException("Failed to write data file", e);
     }
   }
 

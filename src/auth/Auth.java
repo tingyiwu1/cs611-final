@@ -2,15 +2,16 @@ package auth;
 
 import java.util.Optional;
 
-import obj.Instructor;
 import obj.User;
+import store.Store;
 
 public class Auth {
-  private static final Auth INSTANCE = new Auth();
+  private final Store store;
 
   private Optional<User> user;
 
-  private Auth() {
+  public Auth(Store store) {
+    this.store = store;
     this.user = Optional.empty();
   }
 
@@ -18,9 +19,12 @@ public class Auth {
     return user.isPresent();
   }
 
-  public void login(String id) {
-    // placeholder
-    user = Optional.of(new Instructor(id, "CPK"));
+  public Optional<User> login(String id) {
+    if (isLoggedIn()) {
+      throw new IllegalStateException("Already logged in");
+    }
+    user = store.get(User.class, id);
+    return user;
   }
 
   public void logout() {
