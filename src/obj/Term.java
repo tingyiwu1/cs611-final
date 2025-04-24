@@ -2,7 +2,7 @@ package obj;
 
 import java.io.Serializable;
 
-public class Term implements Serializable {
+public class Term implements Serializable, Comparable<Term> {
 
   public static enum Season {
     SPRING, SUMMER, FALL, WINTER
@@ -45,5 +45,13 @@ public class Term implements Serializable {
     int result = season != null ? season.hashCode() : 0;
     result = 31 * result + year;
     return result;
+  }
+
+  @Override
+  public int compareTo(Term o) {
+    if (this.year != o.year) {
+      return Integer.compare(this.year, o.year);
+    }
+    return this.season.compareTo(o.season);
   }
 }

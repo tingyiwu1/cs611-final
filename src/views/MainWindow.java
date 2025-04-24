@@ -14,18 +14,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MainWindow extends JFrame {
-    private final Store store;
-    private final Auth auth;
+    public final Store store;
+    public final Auth auth;
 
-    private CardLayout cardLayout;
-    private JPanel mainPanel;
+    private final CardLayout cardLayout;
+    private final JPanel mainPanel;
 
-    private List<Course> courses;
-    private Course currentCourse;
+    private final CardLayout loggedInCardLayout;
+    private final JPanel loggedInPanel;
 
     public MainWindow() {
-        store = new FileStore(System.getProperties().getProperty("user.home"), "data.dat");
+        store = new FileStore(System.getProperty("user.dir"), "data.dat");
         auth = new Auth(store);
+
+        System.out.println(store);
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(java.awt.event.WindowEvent e) {
@@ -42,37 +44,47 @@ public class MainWindow extends JFrame {
         cardLayout = new CardLayout();
         mainPanel = new JPanel(cardLayout);
 
-        initCourses();  // 初始化课程列表
+        mainPanel.add(new LoginPanel(this), "loggedOut");
 
-        mainPanel.add(new CourseListPanel(this, courses), "courseList");
-        mainPanel.add(new CreateCoursePanel(this), "createCourse");
-        mainPanel.add(new CourseViewPanel(this), "courseView");
+        loggedInCardLayout = new CardLayout();
+        loggedInPanel = new JPanel(loggedInCardLayout);
+
+        mainPanel.add(loggedInPanel, "loggedIn");
+
+        cardLayout.show(mainPanel, "loggedOut");
+        // mainPanel.add(new CreateCoursePanel(this), "createCourse");
+        // mainPanel.add(new CourseViewPanel(this), "courseView");
 
         add(mainPanel);
-
         setVisible(true);
-        switchPanel("courseList");
-    }
-
-    private void initCourses() {
-        courses = new ArrayList<>();
-        courses.add(new Course("CS 581", "Computational Fabrication", "Spring 2025", 15));
-        courses.add(new Course("CS 611", "Object Oriented Design and Development", "Spring 2025", 7));
-        courses.add(new Course("MA230", "Honors-Level Vector Calculus", "Spring 2025", 12));
-        courses.add(new Course("CAS CS 552", "Operating Systems", "Fall 2024", 4));
-        courses.add(new Course("CS 582", "Geometry Processing", "Fall 2024", 21));
-        courses.add(new Course("CS480/680", "Introduction to Computer Graphics", "Fall 2024", 13));
     }
 
     public void switchPanel(String panelName) {
-        cardLayout.show(mainPanel, panelName);
+        loggedInCardLayout.show(loggedInPanel, panelName);
+    }
+
+    public void onLogin() {
+        if (!auth.isLoggedIn()) {
+            throw new IllegalStateException("Not logged in");
+        }
+        loggedInPanel.removeAll();
+        loggedInPanel.add(new CourseListPanel(this), "courseList");
+        // loggedInPanel.add(new AssignmentsScreen(), "assignments");
+
+        cardLayout.show(mainPanel, "loggedIn");
+        loggedInCardLayout.show(loggedInPanel, "courseList");
     }
 
     public void setCurrentCourse(Course course) {
-        this.currentCourse = course;
     }
 
     public Course getCurrentCourse() {
-        return currentCourse;
+        return null;
+    }
+
+    public void logout() {
+        auth.logout();
+        loggedInPanel.removeAll();
+        cardLayout.show(mainPanel, "loggedOut");
     }
 }
