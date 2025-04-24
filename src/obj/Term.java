@@ -28,8 +28,22 @@ public class Term implements Serializable {
     return season.toString() + " " + year;
   }
 
-  public boolean equals(Term other) {
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null || getClass() != obj.getClass()) {
+      return false;
+    }
+    Term other = (Term) obj;
     return this.season == other.season && this.year == other.year;
   }
 
+  @Override
+  public int hashCode() {
+    int result = season != null ? season.hashCode() : 0;
+    result = 31 * result + year;
+    return result;
+  }
 }
