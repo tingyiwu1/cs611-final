@@ -42,7 +42,7 @@ public class CourseViewPanel extends JPanel {
             titleLabel.setText(course.getCode());
             infoArea.setText(
                 "Course Name: " + course.getName() +
-                "\nSemester: " + course.getSemester() +
+                "\nSemester: " + course.getTerm() +
                 "\nAssignments: " + course.getAssignmentCount()
             );
         }
