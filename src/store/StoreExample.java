@@ -103,9 +103,11 @@ public class StoreExample {
         store.save();
       }
     }
+    System.out.println(store);
     Instructor cpk = store.get(Instructor.class, "cpk").get();
     System.out.println("Instructor: " + cpk.getName());
     cpk.delete();
+    System.out.println(store);
     System.out.println(store.get(Student.class, "charlie"));
   }
 }

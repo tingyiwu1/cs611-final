@@ -123,11 +123,11 @@ public abstract class StoredObject implements Serializable, Identifiable {
    * Represents a set of {@code StoredObject}s which refer to this object through
    * a {@code ForeignKey}. (This is a one-to-many relation, where this object is
    * the "one" side.)
-   * 
+   * <p>
    * Requires that the foreign object has a field called {@code "fieldName"}
    * containing a {@code ForeignKey} to this object (uses reflection to find and
    * verify the field).
-   * 
+   * <p>
    * Uses a naive (and inefficient) filter implementation for iterating over the
    * objects. Can implement caching or indices to solve this if it becomes a
    * performance issue.
