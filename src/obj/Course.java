@@ -81,7 +81,7 @@ public class Course extends StoredObject {
     public ArrayList<Assignment> getAssignmentsInCategory(Category category) {
         ArrayList<Assignment> assignmentsInCategory = new ArrayList<>();
         for (Assignment assignment : assignments) {
-            if (assignment.getCategory().getId() == category.getId()) {
+            if (assignment.getCategory().getId().equals(category.getId())) {
                 assignmentsInCategory.add(assignment);
             }
         }
