@@ -3,33 +3,34 @@ package auth;
 import java.util.Optional;
 
 import obj.User;
+import store.Store;
 
-public class Auth implements IAuth {
-  private static final Auth instance = new Auth();
+public class Auth {
+  private final Store store;
 
   private Optional<User> user;
 
-  private Auth() {
+  public Auth(Store store) {
+    this.store = store;
     this.user = Optional.empty();
   }
 
-  @Override
   public boolean isLoggedIn() {
     return user.isPresent();
   }
 
-  @Override
-  public void login(String username, String password) {
-    // placeholder
-    user = Optional.of(new User(1, "John Doe", User.Role.STUDENT));
+  public Optional<User> login(String id) {
+    if (isLoggedIn()) {
+      throw new IllegalStateException("Already logged in");
+    }
+    user = store.get(User.class, id);
+    return user;
   }
 
-  @Override
   public void logout() {
     user = Optional.empty();
   }
 
-  @Override
   public User getUser() {
     if (!isLoggedIn()) {
       throw new IllegalStateException("Not logged in");

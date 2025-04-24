@@ -1,19 +1,22 @@
 package obj;
 
-public class User {
-  public static enum Role {
-    INSTRUCTOR,
-    STUDENT,
-    GRADER
+import store.Store;
+import store.StoredObject;
+
+public abstract class User extends StoredObject {
+
+  private String name;
+
+  public User(Store store, String id, String name) {
+    super(store, id);
+    this.name = name;
   }
 
-  private final int id;
-  private String name;
-  private Role role;
+  public String getName() {
+    return name;
+  }
 
-  public User(int id, String name, Role role) {
-    this.id = id;
+  public void setName(String name) {
     this.name = name;
-    this.role = role;
   }
 }
