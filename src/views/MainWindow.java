@@ -1,17 +1,13 @@
 package views;
 
+import auth.Auth;
+import grading.GradeCalculator;
+import java.awt.*;
+import java.awt.event.WindowAdapter;
+import javax.swing.*;
 import obj.Course;
 import store.FileStore;
 import store.Store;
-
-import javax.swing.*;
-
-import auth.Auth;
-
-import java.awt.*;
-import java.awt.event.WindowAdapter;
-import java.util.ArrayList;
-import java.util.List;
 
 public class MainWindow extends JFrame {
     public final Store store;
@@ -22,6 +18,10 @@ public class MainWindow extends JFrame {
 
     private final CardLayout loggedInCardLayout;
     private final JPanel loggedInPanel;
+
+    private Course currentCourse;
+    private GradeCalculator currentCalculator;
+
 
     public MainWindow() {
         store = new FileStore(System.getProperty("user.dir"), "data.dat");
@@ -52,8 +52,8 @@ public class MainWindow extends JFrame {
         mainPanel.add(loggedInPanel, "loggedIn");
 
         cardLayout.show(mainPanel, "loggedOut");
-        // mainPanel.add(new CreateCoursePanel(this), "createCourse");
-        // mainPanel.add(new CourseViewPanel(this), "courseView");
+        // loggedInPanel.add(new CreateCoursePanel(this), "createCourse");
+        // loggedInPanel.add(new CourseViewPanel(this), "courseView");
 
         add(mainPanel);
         setVisible(true);
@@ -75,16 +75,34 @@ public class MainWindow extends JFrame {
         loggedInCardLayout.show(loggedInPanel, "courseList");
     }
 
-    public void setCurrentCourse(Course course) {
-    }
+    public void openCourse(Course course, GradeCalculator calculator) {
+        this.currentCourse = course;
+        this.currentCalculator = calculator;
+    
+        loggedInPanel.add(new CourseViewPanel(this), "courseView");
+        switchPanel("courseView");
+    }    
 
     public Course getCurrentCourse() {
-        return null;
+        return currentCourse;
     }
 
     public void logout() {
         auth.logout();
         loggedInPanel.removeAll();
         cardLayout.show(mainPanel, "loggedOut");
+    }
+
+    public JPanel getLoggedInPanel() {
+        return loggedInPanel;
+    }
+    
+
+    public void setCurrentCalculator(GradeCalculator calculator) {
+        this.currentCalculator = calculator;
+    }
+
+    public GradeCalculator getCurrentCalculator() {
+        return currentCalculator;
     }
 }
