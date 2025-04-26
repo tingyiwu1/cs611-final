@@ -2,6 +2,8 @@
 package views;
 
 import obj.Course;
+import auth.Auth;
+import obj.Student;
 import javax.swing.*;
 import java.awt.*;
 
@@ -71,25 +73,37 @@ public class CourseViewPanel extends JPanel {
             JFrame frame = new JFrame("Assignments – " + course.getCode());
             frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
-            // Create a panel with a Back button and AssignmentsScreen content
-            JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
+            // top bar with Back
+            JPanel main = new JPanel(new BorderLayout(10,10));
+            JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT));
+            JButton back = new JButton("Back");
+            back.addActionListener(e -> frame.dispose());
+            top.add(back);
+            main.add(top, BorderLayout.NORTH);
 
-            // Top panel with Back button
-            JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-            JButton backButton = new JButton("Back");
-            backButton.addActionListener(e -> frame.dispose());
-            topPanel.add(backButton);
-            mainPanel.add(topPanel, BorderLayout.NORTH);
+            // choose per role
+            switch (mainWindow.auth.getUserType()) {
+                case INSTRUCTOR:
+                    main.add(new AssignmentsScreen(course), BorderLayout.CENTER);
+                    break;
+                case STUDENT:
+                    // your student panel from before
+                    Student s = mainWindow.auth.getStudent().orElseThrow();
+                    main.add(new StudentAssignmentsPanel(course, s), BorderLayout.CENTER);
+                    break;
+                case GRADER:
+                    main.add(new GraderAssignmentsPanel(course), BorderLayout.CENTER);
+                    break;
+            }
 
-            // Add the AssignmentsScreen component as the main content
-            mainPanel.add(new AssignmentsScreen(course), BorderLayout.CENTER);
-
-            frame.getContentPane().add(mainPanel);
+            frame.getContentPane().add(main);
             frame.pack();
             frame.setLocationRelativeTo(this);
             frame.setVisible(true);
         });
     }
+
+
 
     private void openRoster(Course course) {
         if (course == null) return;
