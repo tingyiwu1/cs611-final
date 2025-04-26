@@ -1,23 +1,25 @@
 package views;
 
-import obj.Course;
-import obj.Term;
-
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-
 import auth.Auth;
-
+import grading.GradeCalculator;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeMap;
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import obj.Assignment;
+import obj.Course;
+import obj.Term;
 
 public class CourseListPanel extends JPanel {
     private final MainWindow mainWindow;
     private TreeMap<Term, ArrayList<Course>> coursesByTerm = new TreeMap<>();
     private final JPanel semestersPanel;
+    private Map<Course, GradeCalculator> courseCalculators = new HashMap<>();
+
 
     public CourseListPanel(MainWindow mainWindow) {
         this.mainWindow = mainWindow;
@@ -63,6 +65,13 @@ public class CourseListPanel extends JPanel {
             }
             this.coursesByTerm.get(term).add(course);
         }
+
+        // Initialize grade calculator for each course
+        for (Course course : courses) {
+            List<Assignment> assignments = course.getAssignments();
+            courseCalculators.put(course, new GradeCalculator(course, assignments));
+        }
+
 
         for (HashMap.Entry<Term, ArrayList<Course>> entry : coursesByTerm.entrySet()) {
             Term term = entry.getKey();
@@ -136,8 +145,8 @@ public class CourseListPanel extends JPanel {
         card.setCursor(new Cursor(Cursor.HAND_CURSOR));
         card.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
-                mainWindow.setCurrentCourse(course); // 设置当前选中课程
-                mainWindow.switchPanel("courseView"); // 切换视图
+                GradeCalculator calculator = courseCalculators.get(course);
+                mainWindow.openCourse(course, calculator);
             }
         });
 
