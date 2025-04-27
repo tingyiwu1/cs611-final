@@ -17,28 +17,28 @@ import java.util.List;
 
 public class MainWindow extends JFrame {
     public final Store store;
-    public final Auth  auth;
+    public final Auth auth;
 
     private final CardLayout cardLayout;
-    private final JPanel    mainPanel;
+    private final JPanel mainPanel;
 
     private final CardLayout loggedInCardLayout;
-    private final JPanel     loggedInPanel;
+    private final JPanel loggedInPanel;
 
-    private final JButton    logoutButton;
+    private final JButton logoutButton;
 
-    private List<Course>    courses;
-    private Course          currentCourse;
+    private List<Course> courses;
+    private Course currentCourse;
     private GradeCalculator currentCalculator;
 
     public MainWindow() {
         // 1) Initialize persistence and auth
         store = new FileStore(System.getProperty("user.dir"), "data.dat");
-        auth  = new Auth(store);
+        auth = new Auth(store);
 
         // 2) Populate sample data if needed
         try {
-            if (store.get(Instructor.class, "cpk").isEmpty()) {
+            if (!store.get(Instructor.class, "cpk").isPresent()) {
                 StoreExample.populateStore(store);
                 store.save();
             }
@@ -72,14 +72,14 @@ public class MainWindow extends JFrame {
 
         // 6) Top‐level card layout: loggedOut vs loggedIn
         cardLayout = new CardLayout();
-        mainPanel  = new JPanel(cardLayout);
+        mainPanel = new JPanel(cardLayout);
 
         // 6a) loggedOut = login screen
         mainPanel.add(new LoginPanel(this), "loggedOut");
 
         // 6b) loggedIn = a second card layout for post-login views
         loggedInCardLayout = new CardLayout();
-        loggedInPanel      = new JPanel(loggedInCardLayout);
+        loggedInPanel = new JPanel(loggedInCardLayout);
         mainPanel.add(loggedInPanel, "loggedIn");
 
         add(mainPanel, BorderLayout.CENTER);
@@ -103,18 +103,17 @@ public class MainWindow extends JFrame {
         // load all courses
         courses = store.getAll(Course.class);
         if (!courses.isEmpty()) {
-            currentCourse     = courses.get(0);
+            currentCourse = courses.get(0);
             currentCalculator = new GradeCalculator(
                     currentCourse,
-                    currentCourse.getAssignments()
-            );
+                    currentCourse.getAssignments());
         }
 
         // rebuild the logged-in UI
         loggedInPanel.removeAll();
-        loggedInPanel.add(new CourseListPanel(this),   "courseList");
+        loggedInPanel.add(new CourseListPanel(this), "courseList");
         loggedInPanel.add(new CreateCoursePanel(this), "createCourse");
-        loggedInPanel.add(new CourseViewPanel(this),   "courseView");
+        loggedInPanel.add(new CourseViewPanel(this), "courseView");
 
         // switch to loggedIn → courseList
         cardLayout.show(mainPanel, "loggedIn");
@@ -122,7 +121,7 @@ public class MainWindow extends JFrame {
     }
 
     public void openCourse(Course course, GradeCalculator calculator) {
-        this.currentCourse     = course;
+        this.currentCourse = course;
         this.currentCalculator = calculator;
 
         // ensure courseView is updated and shown
@@ -148,11 +147,25 @@ public class MainWindow extends JFrame {
     }
 
     // Expose state to child panels:
-    public List<Course> getCourses()               { return courses;           }
-    public Course       getCurrentCourse()         { return currentCourse;     }
-    public void         setCurrentCourse(Course c) { this.currentCourse = c;   }
-    public GradeCalculator getCurrentCalculator() { return currentCalculator; }
-    public void         setCurrentCalculator(GradeCalculator calc) { this.currentCalculator = calc; }
+    public List<Course> getCourses() {
+        return courses;
+    }
+
+    public Course getCurrentCourse() {
+        return currentCourse;
+    }
+
+    public void setCurrentCourse(Course c) {
+        this.currentCourse = c;
+    }
+
+    public GradeCalculator getCurrentCalculator() {
+        return currentCalculator;
+    }
+
+    public void setCurrentCalculator(GradeCalculator calc) {
+        this.currentCalculator = calc;
+    }
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(MainWindow::new);

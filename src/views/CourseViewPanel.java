@@ -91,7 +91,8 @@ public class CourseViewPanel extends JPanel {
                     break;
                 case STUDENT:
                 default:
-                    Student s = mainWindow.auth.getStudent().orElseThrow();
+                    Student s = mainWindow.auth.getStudent().orElseThrow(
+                            () -> new IllegalStateException("Student not found"));
                     wrapper.add(new StudentAssignmentsPanel(course, s), BorderLayout.CENTER);
                     break;
             }

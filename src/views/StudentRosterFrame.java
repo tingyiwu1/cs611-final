@@ -32,7 +32,7 @@ public class StudentRosterFrame extends JFrame {
         JButton addGrader = new JButton("Add Grader");
         addGrader.addActionListener(e -> {
             String name = JOptionPane.showInputDialog(this, "Grader name:");
-            if (name != null && !name.isBlank()) gradersModel.addElement(name.trim());
+            if (name != null && !name.trim().isEmpty()) gradersModel.addElement(name.trim());
         });
         left.add(addGrader, BorderLayout.SOUTH);
 
