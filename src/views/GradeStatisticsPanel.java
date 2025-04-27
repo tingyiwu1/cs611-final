@@ -1,11 +1,11 @@
 package views;
 
 import grading.GradeCalculator;
-
-import javax.swing.*;
 import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
+import javax.swing.*;
+import myUtils.ChartUtils;
 
 public class GradeStatisticsPanel extends JPanel {
     private JLabel minLabel;
@@ -32,7 +32,7 @@ public class GradeStatisticsPanel extends JPanel {
         statsPanel.add(avgLabel);
 
         JButton backButton = new JButton("← Back");
-        backButton.addActionListener(e -> mainWindow.switchPanel("courseView"));
+        backButton.addActionListener(e -> mainWindow.switchPanel("grading"));
 
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.add(backButton, BorderLayout.WEST);
@@ -40,26 +40,10 @@ public class GradeStatisticsPanel extends JPanel {
         add(topPanel, BorderLayout.NORTH);
 
         // 中间柱状图
-        chartPanel = new JPanel() {
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                if (studentGrades == null || studentGrades.isEmpty()) return;
-
-                int width = getWidth();
-                int height = getHeight();
-                int barWidth = width / studentGrades.size();
-
-                int i = 0;
-                for (Map.Entry<String, Double> entry : studentGrades.entrySet()) {
-                    int barHeight = (int) ((entry.getValue() / 100.0) * (height - 50));
-                    g.setColor(Color.BLUE);
-                    g.fillRect(i * barWidth + 20, height - barHeight - 30, barWidth - 40, barHeight);
-                    g.setColor(Color.BLACK);
-                    g.drawString(entry.getKey(), i * barWidth + 30, height - 10);
-                    i++;
-                }
-            }
-        };
+        
+        chartPanel = ChartUtils.createGradeHistogram("Final Grades Distribution", studentGrades);
+        
+        
         add(chartPanel, BorderLayout.CENTER);
     }
 
@@ -71,15 +55,21 @@ public class GradeStatisticsPanel extends JPanel {
     private void updateGradesFromCalculator() {
         if (calculator == null) return;
         studentGrades = calculator.calculateAllStudentGrades();
-
+    
         double min = studentGrades.values().stream().min(Double::compare).orElse(0.0);
         double max = studentGrades.values().stream().max(Double::compare).orElse(0.0);
         double avg = studentGrades.values().stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
-
+    
         minLabel.setText("Min: " + String.format("%.2f", min));
         maxLabel.setText("Max: " + String.format("%.2f", max));
         avgLabel.setText("Average: " + String.format("%.2f", avg));
-
-        repaint();
+    
+        
+        this.remove(chartPanel); //remove old charPanel
+        chartPanel = ChartUtils.createGradeHistogram("Final Grades Distribution", studentGrades); 
+        this.add(chartPanel, BorderLayout.CENTER); 
+        this.revalidate(); 
+        this.repaint();    
     }
+    
 }

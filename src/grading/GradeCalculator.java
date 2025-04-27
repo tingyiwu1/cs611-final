@@ -16,7 +16,16 @@ public class GradeCalculator {
         this.course = course;
         this.assignments = assignments;
         this.assignmentWeights = new HashMap<>();
-        this.strategy = new RatioStrategy(); // 默认策略
+        this.strategy = new RatioStrategy(); 
+        initializeDefaultWeights();
+    }
+
+    private void initializeDefaultWeights() {
+        if (assignments == null || assignments.isEmpty()) return;
+        double averageWeight = 100.0 / assignments.size();  // 总共100%平分
+        for (Assignment a : assignments) {
+            assignmentWeights.put(a.getId(), averageWeight);
+        }
     }
 
     public void setAssignmentWeight(String assignmentId, double weight) {
@@ -45,7 +54,7 @@ public class GradeCalculator {
         Set<String> studentIds = new HashSet<>();
         for (Assignment a : assignments) {
             for (Submission s : a.getSubmissions()) {
-                studentIds.add(s.getId());
+                studentIds.add(s.getStudent().getId());
             }
         }
 

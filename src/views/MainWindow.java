@@ -129,6 +129,16 @@ public class MainWindow extends JFrame {
         switchPanel("courseView");
     }
 
+    public void openCourseGrading(Course course) {
+        this.currentCourse = course;
+        this.currentCalculator = new GradeCalculator(
+                currentCourse,
+                currentCourse.getAssignments());
+
+        loggedInPanel.add(new GradingPanel(this), "grading");
+        switchPanel("grading");
+    }
+
     /**
      * Switch among post-login cards: "courseList", "createCourse", "courseView".
      */
@@ -165,6 +175,10 @@ public class MainWindow extends JFrame {
 
     public void setCurrentCalculator(GradeCalculator calc) {
         this.currentCalculator = calc;
+    }
+
+    public JPanel getLoggedInPanel() {
+        return loggedInPanel;
     }
 
     public static void main(String[] args) {
