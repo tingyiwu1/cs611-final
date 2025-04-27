@@ -1,100 +1,94 @@
+// AssignmentsScreen.java
 package views;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-
 import obj.Assignment;
+import obj.Course;
 
+import javax.swing.*;
+import java.awt.*;
+
+/**
+ * Lists all assignments for a given Course, with Edit and Submissions buttons.
+ */
 public class AssignmentsScreen extends JPanel {
-
+  private final Course course;
+  private final Assignment[] assignments;
   private final JPanel assignmentsList;
-  private Assignment[] assignments;
 
-  public AssignmentsScreen() {
-    setLayout(new BorderLayout());
-
-    JLabel titleLabel = new JLabel("Assignments", JLabel.CENTER);
-    add(titleLabel, BorderLayout.PAGE_START);
+  public AssignmentsScreen(Course course) {
+    this.course = course;
+    // grab all assignments out of the course
+    this.assignments = course != null
+            ? course.getAssignments().toArray(new Assignment[0])
+            : new Assignment[0];
 
     assignmentsList = new JPanel();
     assignmentsList.setLayout(new BoxLayout(assignmentsList, BoxLayout.Y_AXIS));
 
-    setSampleData();
-
-    for (Assignment assignment : assignments) {
-      JPanel assignmentPanel = new AssignmentRow(assignment);
-      assignmentsList.add(assignmentPanel);
-      // assignmentsList.add(Box.createRigidArea(new Dimension(0, 5)));
-    }
-
-    add(assignmentsList, BorderLayout.CENTER);
-
-    JButton newAssignmentButton = new JButton("Create New Assignment");
-    newAssignmentButton.addActionListener(e -> {
-      // Handle new assignment action
-      System.out.println("Create new assignment button clicked");
-    });
-    add(newAssignmentButton, BorderLayout.PAGE_END);
-
-    setVisible(true);
+    initComponents();
   }
 
-  private void setSampleData() {
-    assignments = Assignment.getSampleAssignments();
+  private void initComponents() {
+    setLayout(new BorderLayout(10, 10));
+
+    // Title
+    JLabel titleLabel = new JLabel("Assignments for " + course.getCode(), SwingConstants.CENTER);
+    titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 20f));
+    add(titleLabel, BorderLayout.NORTH);
+
+    // Assignment rows
+    for (Assignment a : assignments) {
+      AssignmentRow row = new AssignmentRow(a);
+      assignmentsList.add(row);
+      assignmentsList.add(Box.createRigidArea(new Dimension(0, 5)));
+    }
+    add(new JScrollPane(assignmentsList), BorderLayout.CENTER);
+
+    // Create button
+    JButton newBtn = new JButton("Create New Assignment");
+    newBtn.addActionListener(e -> {
+      // TODO: open your editor
+      System.out.println("Create new assignment clicked");
+    });
+    JPanel south = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+    south.add(newBtn);
+    add(south, BorderLayout.SOUTH);
   }
 
   private class AssignmentRow extends JPanel {
-    private final Assignment assignment;
-
-    public AssignmentRow(Assignment assignment) {
-      this.assignment = assignment;
+    AssignmentRow(Assignment a) {
       setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
-      setSize(200, 50);
-      setVisible(true);
+      setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
 
-      JLabel nameLabel = new JLabel(assignment.name);
-      JLabel categoryLabel = new JLabel(assignment.category);
-      JLabel pointsLabel = new JLabel(String.valueOf(assignment.points));
-      JLabel dueDateLabel = new JLabel(assignment.dueDate.toString());
-      JButton editButton = new JButton("Edit");
-      editButton.addActionListener(new EditListener());
-      JButton submissionsButton = new JButton("Submissions");
-      submissionsButton.addActionListener(new SubmissionsListener());
+      add(new JLabel(a.getName()));
+      add(Box.createHorizontalStrut(10));
+      add(new JLabel(a.getPoints() + " pts"));
+      add(Box.createHorizontalStrut(10));
+      add(new JLabel(a.getDueDate().toString()));
+      add(Box.createHorizontalGlue());
 
-      add(nameLabel);
-      add(Box.createRigidArea(new Dimension(5, 0)));
-      add(categoryLabel);
-      add(Box.createRigidArea(new Dimension(5, 0)));
-      add(pointsLabel);
-      add(Box.createRigidArea(new Dimension(5, 0)));
-      add(dueDateLabel);
-      add(Box.createRigidArea(new Dimension(5, 0)));
-      add(editButton);
-      add(Box.createRigidArea(new Dimension(5, 0)));
-      add(submissionsButton);
-    }
+      JButton edit = new JButton("Edit");
+      edit.addActionListener(evt -> {
+        // TODO: open editor for 'a'
+        System.out.println("Edit " + a.getId());
+      });
+      add(edit);
 
-    private class EditListener implements ActionListener {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        System.out.println("Edit assignment: " + assignment.id);
-      }
-    }
-
-    private class SubmissionsListener implements ActionListener {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        System.out.println("View submissions for assignment: " + assignment.id);
-      }
+      add(Box.createHorizontalStrut(5));
+      JButton subs = new JButton("Submissions");
+      subs.addActionListener(evt -> openSubmissions(a));
+      add(subs);
     }
   }
 
+  private void openSubmissions(Assignment a) {
+    SwingUtilities.invokeLater(() -> {
+      JFrame frame = new JFrame("Submissions – " + a.getName());
+      frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+      frame.getContentPane().add(new SubmissionsScreen(a));
+      frame.pack();
+      frame.setLocationRelativeTo(this);
+      frame.setVisible(true);
+    });
+  }
 }
