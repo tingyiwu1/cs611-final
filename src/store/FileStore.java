@@ -13,77 +13,62 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Optional;
 
-/**
- * Concrete implementation of the {@code Store} interface that uses a
- * single file to store {@code StoredObjects}. It uses Java serialization to
- * read and write the objects to the file.
- */
 public class FileStore implements Store {
-
   private final Path dataPath;
-
-  /**
-   * The data structure that holds the stored objects and is written to the file.
-   * For each subclass of {@code StoredObject}, we maintain a repository, which
-   * itself is a {@code HashMap} of IDs to {@code StoredObject}s.
-   */
   private final HashMap<Class<? extends StoredObject>, HashMap<String, StoredObject>> repositoryMap;
 
   @SuppressWarnings("unchecked")
   public FileStore(String dataDir, String fileName) {
-    // Check if the data directory exists, if not, create it
+    // ensure data directory exists
     try {
       Files.createDirectories(Paths.get(dataDir));
     } catch (IOException e) {
-      e.printStackTrace();
       throw new RuntimeException("Failed to create data directory", e);
     }
     this.dataPath = Paths.get(dataDir, fileName);
 
-    // Read the data file
-    HashMap<Class<? extends StoredObject>, HashMap<String, StoredObject>> repositoryMap;
+    // Try to read the existing file
+    HashMap<Class<? extends StoredObject>, HashMap<String, StoredObject>> repo;
     try (ObjectInputStream ois = new ObjectInputStream(Files.newInputStream(dataPath))) {
-      repositoryMap = (HashMap<Class<? extends StoredObject>, HashMap<String, StoredObject>>) ois.readObject();
-    } catch (ClassNotFoundException | InvalidClassException e) {
-      e.printStackTrace();
-      throw new RuntimeException("Failed to read data file", e);
+      repo = (HashMap<Class<? extends StoredObject>, HashMap<String, StoredObject>>) ois.readObject();
+
+    } catch (InvalidClassException e) {
+      // Version mismatch: abandon the old file and start fresh
+      System.err.println("Warning: serialized store is incompatible (serialVersionUID mismatch), starting with empty store.");
+      repo = new HashMap<>();
+
+    } catch (ClassNotFoundException e) {
+      throw new RuntimeException("Failed to read data file (class not found)", e);
+
     } catch (NoSuchFileException e) {
-      repositoryMap = new HashMap<>();
+      // File not present yet: first run
+      repo = new HashMap<>();
+
     } catch (IOException e) {
-      e.printStackTrace();
-      throw new RuntimeException("IOException", e);
+      throw new RuntimeException("IOException while reading data file", e);
     }
 
-    // StoredObject.store is transient, so we need to set it manually for all
-    // objects in the store
-    for (HashMap<String, StoredObject> repository : repositoryMap.values()) {
-      for (StoredObject obj : repository.values()) {
-
-        // Traverse up the class hierarchy to find the StoredObject class
+    // Rewire the transient `store` field in every deserialized object
+    for (HashMap<String, StoredObject> r : repo.values()) {
+      for (StoredObject obj : r.values()) {
         Class<?> clazz = obj.getClass();
-        while (clazz != null) {
-          if (clazz.equals(StoredObject.class)) {
-            break;
-          }
+        while (clazz != null && !clazz.equals(StoredObject.class)) {
           clazz = clazz.getSuperclass();
         }
         if (clazz == null) {
-          throw new RuntimeException("Failed to find StoredObject class");
+          throw new RuntimeException("StoredObject class not found in hierarchy");
         }
-
-        // Set the store field to this instance
         try {
           Field f = clazz.getDeclaredField("store");
           f.setAccessible(true);
           f.set(obj, this);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-          e.printStackTrace();
-          throw new RuntimeException("Failed to set store field", e);
+        } catch (Exception ex) {
+          throw new RuntimeException("Failed to restore store reference", ex);
         }
       }
     }
 
-    this.repositoryMap = repositoryMap;
+    this.repositoryMap = repo;
   }
 
   @Override
@@ -91,7 +76,6 @@ public class FileStore implements Store {
     try (ObjectOutputStream oos = new ObjectOutputStream(Files.newOutputStream(dataPath))) {
       oos.writeObject(repositoryMap);
     } catch (IOException e) {
-      e.printStackTrace();
       throw new RuntimeException("Failed to write data file", e);
     }
   }
@@ -111,16 +95,15 @@ public class FileStore implements Store {
   public <T extends StoredObject> void putNew(T obj) {
     HashMap<String, StoredObject> repository = repositoryMap.computeIfAbsent(obj.getClass(), k -> new HashMap<>());
     if (repository.containsKey(obj.getId())) {
-      throw new IDExistsException(
-          obj.getClass().getSimpleName() + " with ID " + obj.getId() + " already exists.");
+      throw new IDExistsException(obj.getClass().getSimpleName() + " with ID " + obj.getId() + " already exists.");
     }
     repository.put(obj.getId(), obj);
   }
 
   @Override
   public <T extends StoredObject> void upsert(T obj) {
-    HashMap<String, StoredObject> repository = repositoryMap.computeIfAbsent(obj.getClass(), k -> new HashMap<>());
-    repository.put(obj.getId(), obj);
+    repositoryMap.computeIfAbsent(obj.getClass(), k -> new HashMap<>())
+            .put(obj.getId(), obj);
   }
 
   @Override
@@ -128,7 +111,7 @@ public class FileStore implements Store {
     HashMap<String, StoredObject> repository = repositoryMap.get(obj.getClass());
     if (repository != null) {
       repository.remove(obj.getId());
-      if (repository.size() == 0) {
+      if (repository.isEmpty()) {
         repositoryMap.remove(obj.getClass());
       }
     }
@@ -139,7 +122,7 @@ public class FileStore implements Store {
     HashMap<String, StoredObject> repository = repositoryMap.get(clazz);
     if (repository != null) {
       repository.remove(id);
-      if (repository.size() == 0) {
+      if (repository.isEmpty()) {
         repositoryMap.remove(clazz);
       }
     }
@@ -161,16 +144,13 @@ public class FileStore implements Store {
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder();
-    sb.append("FileStore:\n");
-    for (Class<? extends StoredObject> clazz : repositoryMap.keySet()) {
-      sb.append("\t").append(clazz.getSimpleName()).append(":\n");
-      HashMap<String, StoredObject> repository = repositoryMap.get(clazz);
-      for (String id : repository.keySet()) {
+    StringBuilder sb = new StringBuilder("FileStore:\n");
+    for (Class<? extends StoredObject> c : repositoryMap.keySet()) {
+      sb.append("\t").append(c.getSimpleName()).append(":\n");
+      for (String id : repositoryMap.get(c).keySet()) {
         sb.append("\t\t").append(id).append("\n");
       }
     }
     return sb.toString();
   }
-
 }

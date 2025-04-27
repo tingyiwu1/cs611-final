@@ -80,10 +80,6 @@ public abstract class StoredObject implements Serializable, Identifiable {
     store.delete(this);
   }
 
-  public Store getStore() {
-    return store;
-  }
-
   /**
    * Represents a "lazy" reference to {@code StoredObject} of type {@code T}. We
    * store the ID of the referred object and look it up in the store when needed.

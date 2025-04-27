@@ -1,128 +1,120 @@
 package views;
 
-import grading.GradeCalculator;
-import java.awt.*;
-import java.util.*;
-import java.util.List;
-import java.util.stream.Collectors;
+import auth.Auth;
+import obj.Course;
+import obj.Student;
+
 import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
-import obj.Assignment;
-import obj.Submission;
+import java.awt.*;
 
 public class CourseViewPanel extends JPanel {
-    private MainWindow mainWindow;
-    private JLabel titleLabel;
-    private JTable table;
-    private DefaultTableModel tableModel;
-    private JButton btnSetGradingRule;
-    private JButton btnBeginGrading;
-    private List<String> studentIds;
-    private List<String> assignmentIds;
-    private GradeCalculator calculator;
+    private final MainWindow mainWindow;
+    private JButton backButton;
 
     public CourseViewPanel(MainWindow mainWindow) {
         this.mainWindow = mainWindow;
-        this.calculator = mainWindow.getCurrentCalculator(); 
+        initComponents();
+    }
 
-        this.studentIds = calculator.getCourse().getEnrolledStudents().stream()
-                .map(s -> s.getId()).collect(Collectors.toList());
+    private void initComponents() {
+        setLayout(new BorderLayout(10, 10));
 
-        this.assignmentIds = calculator.getAssignments().stream()
-                .map(Assignment::getId).collect(Collectors.toList());
+        // --- Top bar with Back + Title ---
+        JPanel topPanel = new JPanel(new BorderLayout());
+        backButton = new JButton("Back");
+        backButton.addActionListener(e -> mainWindow.switchPanel("courseList"));
+        topPanel.add(backButton, BorderLayout.WEST);
 
-        setLayout(new BorderLayout());
+        Course course = mainWindow.getCurrentCourse();
+        String title = (course != null)
+                ? course.getCode() + " – " + course.getName()
+                : "No Course Selected";
+        JLabel titleLabel = new JLabel(title, SwingConstants.CENTER);
+        titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 24f));
+        topPanel.add(titleLabel, BorderLayout.CENTER);
 
-        titleLabel = new JLabel(
-            "Course: " + calculator.getCourse().getCode() +
-            " | Semester: " + calculator.getCourse().getTerm().getSeason() + " " + calculator.getCourse().getTerm().getYear(),
-            SwingConstants.CENTER
-        );
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        titleLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        add(titleLabel, BorderLayout.NORTH);
+        add(topPanel, BorderLayout.NORTH);
 
-        tableModel = buildTableModel();
-        table = new JTable(tableModel);
-        add(new JScrollPane(table), BorderLayout.CENTER);
+        // --- Determine role and show/hide Roster ---
+        Auth.UserType role = mainWindow.auth.getUserType();
+        boolean isInstructor = (role == Auth.UserType.INSTRUCTOR);
 
-        JPanel buttonPanel = new JPanel(new FlowLayout());
-        btnSetGradingRule = new JButton("Set Grading Rule");
-        btnBeginGrading = new JButton("Begin Grading");
-        buttonPanel.add(btnSetGradingRule);
-        buttonPanel.add(btnBeginGrading);
-        add(buttonPanel, BorderLayout.SOUTH);
+        // --- Button grid (2×2) ---
+        JPanel buttonPanel = new JPanel(new GridLayout(2, 2, 20, 20));
 
-        btnSetGradingRule.addActionListener(e -> {
-            SetGradingRulePanel rulePanel = new SetGradingRulePanel(calculator.getAssignmentWeights());
-            rulePanel.setGradeCalculator(calculator);
-            rulePanel.setOnSaveCallback(() -> mainWindow.switchPanel("courseView"));
-            mainWindow.getLoggedInPanel().add(rulePanel, "setGradingRule");
-            mainWindow.switchPanel("setGradingRule");
+        // Assignments (everyone)
+        JButton assignmentsBtn = new JButton("Assignments");
+        assignmentsBtn.setEnabled(course != null);
+        assignmentsBtn.addActionListener(e -> openAssignments(course));
+        buttonPanel.add(assignmentsBtn);
+
+        // Roster (instructors only)
+        JButton rosterBtn = new JButton("Roster");
+        rosterBtn.setEnabled(isInstructor && course != null);
+        rosterBtn.setVisible(isInstructor);
+        rosterBtn.addActionListener(e -> openRoster(course));
+        buttonPanel.add(rosterBtn);
+
+        // placeholders
+        JButton fakeBtn1 = new JButton("UNIMPLEMENTED");
+        fakeBtn1.setFont(fakeBtn1.getFont().deriveFont(Font.BOLD, 18f));
+        JButton fakeBtn2 = new JButton("UNIMPLEMENTED");
+        fakeBtn2.setFont(fakeBtn2.getFont().deriveFont(Font.BOLD, 18f));
+
+        buttonPanel.add(fakeBtn1);
+        buttonPanel.add(fakeBtn2);
+
+        add(buttonPanel, BorderLayout.CENTER);
+    }
+
+    private void openAssignments(Course course) {
+        if (course == null) return;
+        SwingUtilities.invokeLater(() -> {
+            JFrame frame = new JFrame("Assignments – " + course.getCode());
+            frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+
+            // wrap with its own Back
+            JPanel wrapper = new JPanel(new BorderLayout(10, 10));
+            JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT));
+            JButton back = new JButton("Back");
+            back.addActionListener(e -> frame.dispose());
+            top.add(back);
+            wrapper.add(top, BorderLayout.NORTH);
+
+            // choose the right panel per role
+            switch (mainWindow.auth.getUserType()) {
+                case INSTRUCTOR:
+                    wrapper.add(new AssignmentsScreen(course), BorderLayout.CENTER);
+                    break;
+                case GRADER:
+                    wrapper.add(new GraderAssignmentsPanel(course), BorderLayout.CENTER);
+                    break;
+                case STUDENT:
+                default:
+                    Student s = mainWindow.auth.getStudent().orElseThrow(
+                            () -> new IllegalStateException("Student not found"));
+                    wrapper.add(new StudentAssignmentsPanel(course, s), BorderLayout.CENTER);
+                    break;
+            }
+
+            frame.getContentPane().add(wrapper);
+            frame.pack();
+            frame.setLocationRelativeTo(this);
+            frame.setVisible(true);
         });
+    }
 
-        btnBeginGrading.addActionListener(e -> {
-            updateFinalScores();
-            GradeStatisticsPanel statPanel = new GradeStatisticsPanel(mainWindow);
-            statPanel.setGradeCalculator(calculator);
-            mainWindow.getLoggedInPanel().add(statPanel, "statistics");
-            mainWindow.switchPanel("statistics");
+    private void openRoster(Course course) {
+        if (course == null) return;
+        SwingUtilities.invokeLater(() -> {
+            StudentRosterFrame rosterFrame = new StudentRosterFrame(
+                    course.getGraders(),
+                    course.getEnrolledStudents()
+            );
+            rosterFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+            rosterFrame.pack();
+            rosterFrame.setLocationRelativeTo(this);
+            rosterFrame.setVisible(true);
         });
-    }
-
-    private DefaultTableModel buildTableModel() {
-        String[] columnNames = buildColumnHeaders();
-        Object[][] rowData = buildTableData();
-        return new DefaultTableModel(rowData, columnNames) {
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
-        };
-    }
-
-    private String[] buildColumnHeaders() {
-        List<String> columns = new ArrayList<>();
-        columns.add("Student");
-        columns.add("Submitted");
-        columns.addAll(assignmentIds);
-        columns.add("Final Score");
-        return columns.toArray(new String[0]);
-    }
-
-    private Object[][] buildTableData() {
-        List<Assignment> assignments = calculator.getAssignments();
-        Map<String, Set<String>> studentSubmissions = new HashMap<>();
-        for (Assignment a : assignments) {
-            for (Submission s : a.getSubmissions()) {
-                studentSubmissions
-                        .computeIfAbsent(s.getStudent().getId(), k -> new HashSet<>())
-                        .add(a.getId());
-            }
-        }
-
-        Object[][] data = new Object[studentIds.size()][2 + assignmentIds.size() + 1];
-        for (int i = 0; i < studentIds.size(); i++) {
-            String sid = studentIds.get(i);
-            Set<String> submitted = studentSubmissions.getOrDefault(sid, new HashSet<>());
-
-            data[i][0] = sid;
-            data[i][1] = submitted.size() + "/" + assignmentIds.size();
-            for (int j = 0; j < assignmentIds.size(); j++) {
-                String aid = assignmentIds.get(j);
-                data[i][2 + j] = submitted.contains(aid) ? "✓" : "";
-            }
-            data[i][2 + assignmentIds.size()] = "";
-        }
-
-        return data;
-    }
-
-    public void updateFinalScores() {
-        Map<String, Double> scores = calculator.calculateAllStudentGrades();
-        for (int row = 0; row < studentIds.size(); row++) {
-            String sid = (String) tableModel.getValueAt(row, 0);
-            Double score = scores.get(sid);
-            tableModel.setValueAt(String.format("%.2f", score), row, 2 + assignmentIds.size());
-        }
     }
 }

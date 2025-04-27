@@ -26,6 +26,12 @@ public class Assignment extends StoredObject {
     this.category.setId(categoryId);
   }
 
+  public static Assignment[] getSampleAssignments() {
+    return new Assignment[] { new Assignment(null, "assignment1", "Assignment 1", "course1", "category1", 10, true,
+        new Date()), new Assignment(null, "assignment2", "Assignment 2", "course1", "category1", 10, true, new Date()),
+        new Assignment(null, "assignment3", "Assignment 3", "course1", "category1", 10, true, new Date()) };
+  }
+
   public String getName() {
     return name;
   }
