@@ -58,11 +58,14 @@ public class CourseViewPanel extends JPanel {
         // placeholders
         JButton fakeBtn1 = new JButton("UNIMPLEMENTED");
         fakeBtn1.setFont(fakeBtn1.getFont().deriveFont(Font.BOLD, 18f));
-        JButton fakeBtn2 = new JButton("UNIMPLEMENTED");
-        fakeBtn2.setFont(fakeBtn2.getFont().deriveFont(Font.BOLD, 18f));
+        JButton gradingBtn = new JButton("Grading");
+        gradingBtn.setFont(gradingBtn.getFont().deriveFont(Font.BOLD, 18f));
+        gradingBtn.addActionListener(e -> {
+            mainWindow.openCourseGrading(course);
+        });
 
         buttonPanel.add(fakeBtn1);
-        buttonPanel.add(fakeBtn2);
+        buttonPanel.add(gradingBtn);
 
         add(buttonPanel, BorderLayout.CENTER);
     }
