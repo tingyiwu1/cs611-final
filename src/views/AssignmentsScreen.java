@@ -5,14 +5,18 @@ import obj.Course;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Arrays;
 
+/**
+ * Lists all assignments for a given Course, with Edit and Submissions buttons.
+ */
 public class AssignmentsScreen extends JPanel {
   private final MainWindow mainWindow;
   private final Course course;
   private final Assignment[] assignments;
 
   /**
-   * @param mainWindow  so you can push other screens (e.g. submissions)
+   * @param mainWindow  so you can push other screens
    * @param course      which course’s assignments to show
    * @param onBack      Runnable to pop back to the previous card
    */
@@ -47,7 +51,7 @@ public class AssignmentsScreen extends JPanel {
     // ── Assignment list ───────────────────────
     JPanel list = new JPanel();
     list.setLayout(new BoxLayout(list, BoxLayout.Y_AXIS));
-    for (Assignment a : assignments) {
+    Arrays.stream(assignments).forEach(a -> {
       JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT));
       row.add(new JLabel(a.getName()));
       row.add(Box.createHorizontalStrut(10));
@@ -56,29 +60,43 @@ public class AssignmentsScreen extends JPanel {
       row.add(new JLabel(a.getDueDate().toString()));
       row.add(Box.createHorizontalGlue());
 
+      // Edit button: open AssignmentEditorPanel
       JButton edit = new JButton("Edit");
       edit.addActionListener(ev -> {
-        // TODO: push an “edit assignment” panel
+        String key = "assignmentEditor:" + a.getId();
+        // register dynamic screen
+        mainWindow.getNavigator().register(key,
+                () -> new AssignmentEditorPanel(mainWindow, course, a, onBack)
+        );
+        mainWindow.getNavigator().push(key);
       });
       row.add(edit);
 
+      // Submissions button: open SubmissionsScreen
       JButton subs = new JButton("Submissions");
       subs.addActionListener(ev -> {
-        // TODO: push a SubmissionsScreen for this assignment
-        // e.g. mainWindow.getNavigator().push("submissions:" + a.getId());
+        String key = "submissions:" + a.getId();
+        mainWindow.getNavigator().register(key,
+                () -> new SubmissionsScreen(mainWindow, a, onBack)
+        );
+        mainWindow.getNavigator().push(key);
       });
       row.add(subs);
 
       list.add(row);
       list.add(Box.createRigidArea(new Dimension(0, 5)));
-    }
+    });
     add(new JScrollPane(list), BorderLayout.CENTER);
 
     // ── Bottom bar ────────────────────────────
     JPanel bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT));
     JButton create = new JButton("Create New Assignment");
     create.addActionListener(e -> {
-      // TODO: push a “new assignment” panel
+      String key = "assignmentEditor:new";
+      mainWindow.getNavigator().register(key,
+              () -> new AssignmentEditorPanel(mainWindow, course, null, onBack)
+      );
+      mainWindow.getNavigator().push(key);
     });
     bottom.add(create);
     add(bottom, BorderLayout.SOUTH);

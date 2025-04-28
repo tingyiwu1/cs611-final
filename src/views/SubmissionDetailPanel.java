@@ -1,33 +1,48 @@
 package views;
 
 import obj.Submission;
-
 import javax.swing.*;
 import java.awt.*;
 
+/**
+ * Displays the content of a single Submission and allows grading.
+ * Integrated into Navigator stack; uses onBack callback.
+ */
 public class SubmissionDetailPanel extends JPanel {
+    private final MainWindow mainWindow;
     private final Submission submission;
-    private final JTextArea  submissionArea;
-    private final JSpinner   gradeSpinner;
-    private final JButton    backButton;
+    private final Runnable onBack;
+    private final JTextArea submissionArea;
+    private final JSpinner gradeSpinner;
 
-    public SubmissionDetailPanel(Submission submission) {
+    /**
+     * @param mainWindow  for navigation callbacks
+     * @param submission  the submission to display
+     * @param onBack      pop back to previous screen
+     */
+    public SubmissionDetailPanel(MainWindow mainWindow,
+                                 Submission submission,
+                                 Runnable onBack) {
+        this.mainWindow = mainWindow;
         this.submission = submission;
+        this.onBack     = onBack;
+
         setLayout(new BorderLayout(10, 10));
 
-        // Top bar
+        // Top bar with Back Button and title
         JPanel top = new JPanel(new BorderLayout());
-        backButton = new JButton("Back");
-        backButton.addActionListener(e -> onBack());
+        JButton backButton = new JButton("Back");
+        backButton.addActionListener(e -> onBack.run());
         top.add(backButton, BorderLayout.WEST);
 
         String studentName = submission.getStudent().getName();
-        JLabel title = new JLabel("Submission by " + studentName, SwingConstants.CENTER);
+        JLabel title = new JLabel("Submission by " + studentName,
+                SwingConstants.CENTER);
         title.setFont(title.getFont().deriveFont(Font.BOLD, 18f));
         top.add(title, BorderLayout.CENTER);
         add(top, BorderLayout.NORTH);
 
-        // Submission text
+        // Submission content
         submissionArea = new JTextArea(10, 30);
         submissionArea.setEditable(false);
         submissionArea.setText(submission.getContent());
@@ -37,13 +52,13 @@ public class SubmissionDetailPanel extends JPanel {
         JPanel bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         bottom.add(new JLabel("Grade:"));
 
-        int initial = submission.getGrade().orElse(0);  // primitive int
+        int initial = submission.getGrade().orElse(0);
         int maxPts  = submission.getAssignment().getPoints();
         gradeSpinner = new JSpinner(new SpinnerNumberModel(
-                initial,    // int
-                0,          // int
-                maxPts,     // int
-                1           // int
+                initial,
+                0,
+                maxPts,
+                1
         ));
         bottom.add(gradeSpinner);
 
@@ -54,15 +69,9 @@ public class SubmissionDetailPanel extends JPanel {
         add(bottom, BorderLayout.SOUTH);
     }
 
-    private void onBack() {
-        Window w = SwingUtilities.getWindowAncestor(this);
-        if (w instanceof JFrame) ((JFrame) w).dispose();
-    }
-
     private void onSave() {
         int grade = (Integer) gradeSpinner.getValue();
         submission.setGrade(grade);
-        // If you want, you can also persist:
         submission.getStore().upsert(submission);
         submission.getStore().save();
 

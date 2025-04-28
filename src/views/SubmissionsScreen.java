@@ -2,18 +2,28 @@ package views;
 
 import obj.Assignment;
 import obj.Submission;
+import store.Store;
 
 import javax.swing.*;
 import java.awt.*;
 
+/**
+ * Displays submissions for a given assignment.
+ * Integrated into Navigator stack; uses onBack callback.
+ */
 public class SubmissionsScreen extends JPanel {
+    private final MainWindow mainWindow;
     private final Assignment assignment;
+    private final Runnable onBack;
     private final DefaultListModel<String> studentsModel;
-    private final JList<String>            studentsList;
-    private JButton                         backButton;
+    private final JList<String> studentsList;
 
-    public SubmissionsScreen(Assignment assignment) {
+    public SubmissionsScreen(MainWindow mainWindow,
+                             Assignment assignment,
+                             Runnable onBack) {
+        this.mainWindow = mainWindow;
         this.assignment = assignment;
+        this.onBack = onBack;
         this.studentsModel = new DefaultListModel<>();
         this.studentsList  = new JList<>(studentsModel);
         initComponents();
@@ -24,12 +34,12 @@ public class SubmissionsScreen extends JPanel {
 
         // Top bar
         JPanel topPanel = new JPanel(new BorderLayout());
-        backButton = new JButton("Back");
-        backButton.addActionListener(e -> onBack());
+        JButton backButton = new JButton("Back");
+        backButton.addActionListener(e -> onBack.run());
         topPanel.add(backButton, BorderLayout.WEST);
 
         JLabel titleLabel = new JLabel(
-                "Submissions – " + assignment.getId(),
+                "Submissions – " + assignment.getName(),
                 SwingConstants.CENTER
         );
         titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 20f));
@@ -47,44 +57,23 @@ public class SubmissionsScreen extends JPanel {
 
         // Bottom: View Submission button
         JButton viewButton = new JButton("View Submission");
-        viewButton.addActionListener(e -> {
-            String selectedId = studentsList.getSelectedValue();
-            openDetail(selectedId);
-        });
+        viewButton.addActionListener(e -> openDetail(studentsList.getSelectedValue()));
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         buttonPanel.add(viewButton);
         add(buttonPanel, BorderLayout.SOUTH);
     }
 
-    private void onBack() {
-        Window window = SwingUtilities.getWindowAncestor(this);
-        if (window instanceof JFrame) {
-            ((JFrame) window).dispose();
-        }
-    }
-
     private void openDetail(String studentId) {
         if (studentId == null) return;
-
-        // find the Submission object for this student
-        Submission found = null;
-        for (Submission sub : assignment.getSubmissions()) {
-            if (sub.getStudent().getId().equals(studentId)) {
-                found = sub;
-                break;
-            }
-        }
+        Submission found = assignment.getSubmissions().stream()
+                .filter(s -> s.getStudent().getId().equals(studentId))
+                .findFirst().orElse(null);
         if (found == null) return;
 
-        // open the detail panel with the single-arg constructor
-        Submission sub = found;
-        SwingUtilities.invokeLater(() -> {
-            JFrame frame = new JFrame("Submission – " + sub.getStudent().getName());
-            frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-            frame.getContentPane().add(new SubmissionDetailPanel(sub));
-            frame.pack();
-            frame.setLocationRelativeTo(this);
-            frame.setVisible(true);
-        });
+        String key = "submissionDetail:" + studentId;
+        mainWindow.getNavigator().register(key,
+                () -> new SubmissionDetailPanel(mainWindow, found, onBack)
+        );
+        mainWindow.getNavigator().push(key);
     }
 }

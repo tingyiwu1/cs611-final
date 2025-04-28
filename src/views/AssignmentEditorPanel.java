@@ -14,22 +14,28 @@ import java.util.UUID;
 
 /**
  * Panel for creating or editing an Assignment.
- * Wrap this in a JFrame to show the Back button.
+ * Integrated into Navigator stack; uses onBack callback.
  */
 public class AssignmentEditorPanel extends JPanel {
-  private final Course           course;
-  private       Assignment       current;
+  private final MainWindow mainWindow;
+  private final Course course;
+  private Assignment current;
+  private final Runnable onBack;
   private final SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd");
 
   private JTextField       nameField;
   private JComboBox<Category> categoryBox;
   private JSpinner         pointsSpinner;
   private JTextField       dueField;
-  private JButton          backButton;
 
-  public AssignmentEditorPanel(Course course, Assignment toEdit) {
-    this.course  = course;
-    this.current = toEdit;
+  public AssignmentEditorPanel(MainWindow mainWindow,
+                               Course course,
+                               Assignment toEdit,
+                               Runnable onBack) {
+    this.mainWindow = mainWindow;
+    this.course     = course;
+    this.current    = toEdit;
+    this.onBack     = onBack;
     initComponents();
     if (current != null) loadFields();
   }
@@ -39,8 +45,8 @@ public class AssignmentEditorPanel extends JPanel {
 
     // Top bar with Back button and title
     JPanel top = new JPanel(new BorderLayout());
-    backButton = new JButton("Back");
-    backButton.addActionListener(e -> onBack());
+    JButton backButton = new JButton("Back");
+    backButton.addActionListener(e -> onBack.run());
     top.add(backButton, BorderLayout.WEST);
 
     String title = (current == null) ? "Create Assignment" : "Edit Assignment";
@@ -65,7 +71,7 @@ public class AssignmentEditorPanel extends JPanel {
     // Category
     gbc.gridx = 0; gbc.gridy = 1;
     form.add(new JLabel("Category:"), gbc);
-    categoryBox = new JComboBox<>( course.getCategories().toArray(new Category[0]) );
+    categoryBox = new JComboBox<>(course.getCategories().toArray(new Category[0]));
     gbc.gridx = 1;
     form.add(categoryBox, gbc);
 
@@ -109,11 +115,6 @@ public class AssignmentEditorPanel extends JPanel {
     dueField.setText(fmt.format(current.getDueDate()));
   }
 
-  private void onBack() {
-    Window w = SwingUtilities.getWindowAncestor(this);
-    if (w instanceof JFrame) ((JFrame) w).dispose();
-  }
-
   private void onSave() {
     try {
       String name = nameField.getText().trim();
@@ -121,7 +122,7 @@ public class AssignmentEditorPanel extends JPanel {
       int pts     = (Integer) pointsSpinner.getValue();
       Date due    = fmt.parse(dueField.getText().trim());
 
-      Store store = course.getStore();
+      Store store = mainWindow.getStore();
 
       if (current == null) {
         // Create a new assignment
@@ -133,7 +134,6 @@ public class AssignmentEditorPanel extends JPanel {
                 false,
                 due
         );
-        // Persist it
         store.upsert(a);
         store.save();
         JOptionPane.showMessageDialog(this,
@@ -153,7 +153,7 @@ public class AssignmentEditorPanel extends JPanel {
                 "Saved", JOptionPane.INFORMATION_MESSAGE);
       }
 
-      onBack();
+      onBack.run();
     } catch (ParseException ex) {
       JOptionPane.showMessageDialog(this,
               "Invalid date format", "Error", JOptionPane.ERROR_MESSAGE);
@@ -162,20 +162,21 @@ public class AssignmentEditorPanel extends JPanel {
 
   private void onDelete() {
     if (current != null) {
-      current.delete();       // cascades deletes through the store
-      course.getStore().save();
+      current.delete();
+      mainWindow.getStore().save();
       JOptionPane.showMessageDialog(this,
               "Deleted assignment: " + current.getName(),
               "Deleted", JOptionPane.INFORMATION_MESSAGE);
-      onBack();
+      onBack.run();
     }
   }
 
   private void onPublish() {
     if (current != null && !current.isPublished()) {
       current.setPublished(true);
-      course.getStore().upsert(current);
-      course.getStore().save();
+      Store store = mainWindow.getStore();
+      store.upsert(current);
+      store.save();
       JOptionPane.showMessageDialog(this,
               "Published assignment: " + current.getName(),
               "Published", JOptionPane.INFORMATION_MESSAGE);

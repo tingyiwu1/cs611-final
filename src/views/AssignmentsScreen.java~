@@ -1,87 +1,185 @@
-// views/AssignmentsScreen.java
 package views;
 
 import obj.Assignment;
+import obj.Category;
 import obj.Course;
+import store.Store;
 
 import javax.swing.*;
 import java.awt.*;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.UUID;
 
-public class AssignmentsScreen extends JPanel {
+/**
+ * Panel for creating or editing an Assignment.
+ * Integrated into Navigator stack; uses onBack callback.
+ */
+public class AssignmentEditorPanel extends JPanel {
   private final MainWindow mainWindow;
   private final Course course;
-  private final Assignment[] assignments;
+  private Assignment current;
+  private final Runnable onBack;
+  private final SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd");
 
-  /**
-   * @param mainWindow  so you can push other screens (e.g. submissions)
-   * @param course      which course’s assignments to show
-   * @param onBack      Runnable to pop back to the previous card
-   */
-  public AssignmentsScreen(MainWindow mainWindow,
-                           Course course,
-                           Runnable onBack) {
+  private JTextField       nameField;
+  private JComboBox<Category> categoryBox;
+  private JSpinner         pointsSpinner;
+  private JTextField       dueField;
+
+  public AssignmentEditorPanel(MainWindow mainWindow,
+                               Course course,
+                               Assignment toEdit,
+                               Runnable onBack) {
     this.mainWindow = mainWindow;
     this.course     = course;
-    this.assignments = course != null
-            ? course.getAssignments().toArray(new Assignment[0])
-            : new Assignment[0];
-
-    initComponents(onBack);
+    this.current    = toEdit;
+    this.onBack     = onBack;
+    initComponents();
+    if (current != null) loadFields();
   }
 
-  private void initComponents(Runnable onBack) {
+  private void initComponents() {
     setLayout(new BorderLayout(10, 10));
 
-    // ── Top bar ────────────────────────────────
-    JPanel topBar = new JPanel(new BorderLayout());
-    JButton back = new JButton("Back");
-    back.addActionListener(e -> onBack.run());
-    topBar.add(back, BorderLayout.WEST);
+    // Top bar with Back button and title
+    JPanel top = new JPanel(new BorderLayout());
+    JButton backButton = new JButton("Back");
+    backButton.addActionListener(e -> onBack.run());
+    top.add(backButton, BorderLayout.WEST);
 
-    JLabel title = new JLabel("Assignments – " + course.getCode(),
-            SwingConstants.CENTER);
-    title.setFont(title.getFont().deriveFont(Font.BOLD, 20f));
-    topBar.add(title, BorderLayout.CENTER);
+    String title = (current == null) ? "Create Assignment" : "Edit Assignment";
+    JLabel lbl = new JLabel(title, SwingConstants.CENTER);
+    lbl.setFont(lbl.getFont().deriveFont(Font.BOLD, 20f));
+    top.add(lbl, BorderLayout.CENTER);
+    add(top, BorderLayout.NORTH);
 
-    add(topBar, BorderLayout.NORTH);
+    // Form
+    JPanel form = new JPanel(new GridBagLayout());
+    GridBagConstraints gbc = new GridBagConstraints();
+    gbc.insets = new Insets(5,5,5,5);
+    gbc.anchor = GridBagConstraints.WEST;
 
-    // ── Assignment list ───────────────────────
-    JPanel list = new JPanel();
-    list.setLayout(new BoxLayout(list, BoxLayout.Y_AXIS));
-    for (Assignment a : assignments) {
-      JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT));
-      row.add(new JLabel(a.getName()));
-      row.add(Box.createHorizontalStrut(10));
-      row.add(new JLabel(a.getPoints() + " pts"));
-      row.add(Box.createHorizontalStrut(10));
-      row.add(new JLabel(a.getDueDate().toString()));
-      row.add(Box.createHorizontalGlue());
+    // Name
+    gbc.gridx = 0; gbc.gridy = 0;
+    form.add(new JLabel("Name:"), gbc);
+    nameField = new JTextField(20);
+    gbc.gridx = 1;
+    form.add(nameField, gbc);
 
-      JButton edit = new JButton("Edit");
-      edit.addActionListener(ev -> {
-        // TODO: push an “edit assignment” panel
-      });
-      row.add(edit);
+    // Category
+    gbc.gridx = 0; gbc.gridy = 1;
+    form.add(new JLabel("Category:"), gbc);
+    categoryBox = new JComboBox<>(course.getCategories().toArray(new Category[0]));
+    gbc.gridx = 1;
+    form.add(categoryBox, gbc);
 
-      JButton subs = new JButton("Submissions");
-      subs.addActionListener(ev -> {
-        // TODO: push a SubmissionsScreen for this assignment
-        // e.g. mainWindow.getNavigator().push("submissions:" + a.getId());
-      });
-      row.add(subs);
+    // Points
+    gbc.gridx = 0; gbc.gridy = 2;
+    form.add(new JLabel("Points:"), gbc);
+    int initPts = (current != null) ? current.getPoints() : 0;
+    pointsSpinner = new JSpinner(new SpinnerNumberModel(initPts, 0, Integer.MAX_VALUE, 1));
+    gbc.gridx = 1;
+    form.add(pointsSpinner, gbc);
 
-      list.add(row);
-      list.add(Box.createRigidArea(new Dimension(0, 5)));
+    // Due date
+    gbc.gridx = 0; gbc.gridy = 3;
+    form.add(new JLabel("Due Date (YYYY-MM-DD):"), gbc);
+    dueField = new JTextField(10);
+    gbc.gridx = 1;
+    form.add(dueField, gbc);
+
+    add(form, BorderLayout.CENTER);
+
+    // Actions: Save, Delete, Publish
+    JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+    JButton saveBtn    = new JButton("Save");
+    JButton deleteBtn  = new JButton("Delete");
+    JButton publishBtn = new JButton("Publish");
+
+    saveBtn.addActionListener(e -> onSave());
+    deleteBtn.addActionListener(e -> onDelete());
+    publishBtn.addActionListener(e -> onPublish());
+
+    actions.add(saveBtn);
+    actions.add(deleteBtn);
+    actions.add(publishBtn);
+    add(actions, BorderLayout.SOUTH);
+  }
+
+  private void loadFields() {
+    nameField.setText(current.getName());
+    categoryBox.setSelectedItem(current.getCategory());
+    pointsSpinner.setValue(current.getPoints());
+    dueField.setText(fmt.format(current.getDueDate()));
+  }
+
+  private void onSave() {
+    try {
+      String name = nameField.getText().trim();
+      Category cat = (Category) categoryBox.getSelectedItem();
+      int pts     = (Integer) pointsSpinner.getValue();
+      Date due    = fmt.parse(dueField.getText().trim());
+
+      Store store = mainWindow.getStore();
+
+      if (current == null) {
+        // Create a new assignment
+        Assignment a = course.createAssignment(
+                UUID.randomUUID().toString(),
+                name,
+                cat,
+                pts,
+                false,
+                due
+        );
+        store.upsert(a);
+        store.save();
+        JOptionPane.showMessageDialog(this,
+                "Created assignment: " + a.getName(),
+                "Saved", JOptionPane.INFORMATION_MESSAGE);
+      } else {
+        // Update existing
+        current.setName(name);
+        current.setCategory(cat);
+        current.setPoints(pts);
+        current.setDueDate(due);
+
+        store.upsert(current);
+        store.save();
+        JOptionPane.showMessageDialog(this,
+                "Updated assignment: " + current.getName(),
+                "Saved", JOptionPane.INFORMATION_MESSAGE);
+      }
+
+      onBack.run();
+    } catch (ParseException ex) {
+      JOptionPane.showMessageDialog(this,
+              "Invalid date format", "Error", JOptionPane.ERROR_MESSAGE);
     }
-    add(new JScrollPane(list), BorderLayout.CENTER);
+  }
 
-    // ── Bottom bar ────────────────────────────
-    JPanel bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-    JButton create = new JButton("Create New Assignment");
-    create.addActionListener(e -> {
-      // TODO: push a “new assignment” panel
-    });
-    bottom.add(create);
-    add(bottom, BorderLayout.SOUTH);
+  private void onDelete() {
+    if (current != null) {
+      current.delete();
+      mainWindow.getStore().save();
+      JOptionPane.showMessageDialog(this,
+              "Deleted assignment: " + current.getName(),
+              "Deleted", JOptionPane.INFORMATION_MESSAGE);
+      onBack.run();
+    }
+  }
+
+  private void onPublish() {
+    if (current != null && !current.isPublished()) {
+      current.setPublished(true);
+      Store store = mainWindow.getStore();
+      store.upsert(current);
+      store.save();
+      JOptionPane.showMessageDialog(this,
+              "Published assignment: " + current.getName(),
+              "Published", JOptionPane.INFORMATION_MESSAGE);
+    }
   }
 }
