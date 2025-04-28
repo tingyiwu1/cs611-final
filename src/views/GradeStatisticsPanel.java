@@ -32,7 +32,7 @@ public class GradeStatisticsPanel extends JPanel {
         statsPanel.add(avgLabel);
 
         JButton backButton = new JButton("← Back");
-        backButton.addActionListener(e -> mainWindow.switchPanel("grading"));
+        //backButton.addActionListener(e -> mainWindow.switchPanel("grading"));
 
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.add(backButton, BorderLayout.WEST);

@@ -1,3 +1,4 @@
+// views/CourseListPanel.java
 package views;
 
 import auth.Auth;
@@ -60,14 +61,15 @@ public class CourseListPanel extends JPanel {
                 throw new IllegalStateException("Unexpected user type: " + userType);
         }
 
+        // group by term
         TreeMap<Term, List<Course>> byTerm = new TreeMap<>();
         for (Course c : courses) {
             byTerm.computeIfAbsent(c.getTerm(), t -> new ArrayList<>()).add(c);
         }
 
-        byTerm.forEach((term, list) ->
-                semestersPanel.add(createSemesterPanel(term, list))
-        );
+        for (var entry : byTerm.entrySet()) {
+            semestersPanel.add(createSemesterPanel(entry.getKey(), entry.getValue()));
+        }
 
         revalidate();
         repaint();
@@ -86,7 +88,9 @@ public class CourseListPanel extends JPanel {
         grid.setBackground(Color.WHITE);
         grid.setBorder(new EmptyBorder(0, 20, 20, 20));
 
-        courses.forEach(c -> grid.add(createCourseCard(c)));
+        for (Course c : courses) {
+            grid.add(createCourseCard(c));
+        }
         grid.add(createAddCourseCard());
 
         panel.add(semesterLabel);
@@ -121,14 +125,12 @@ public class CourseListPanel extends JPanel {
         card.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
 
         JLabel info = new JLabel(
-                "<html><b>" + course.getCode() + "</b><br/>" +
-                        course.getName() + "</html>"
+                "<html><b>" + course.getCode() + "</b><br/>" + course.getName() + "</html>"
         );
         info.setBorder(new EmptyBorder(10, 10, 10, 10));
 
         JLabel count = new JLabel(
-                course.getAssignmentCount() + " assignments",
-                SwingConstants.CENTER
+                course.getAssignmentCount() + " assignments", SwingConstants.CENTER
         );
         count.setOpaque(true);
         count.setBackground(new Color(0, 80, 100));

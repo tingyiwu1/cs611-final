@@ -74,7 +74,7 @@ public class LoginPanel extends JPanel {
                     return;
                 }
 
-                Optional<User> user = mainWindow.auth.login(userId);
+                Optional<User> user = mainWindow.getAuth().login(userId);
                 if (user.isPresent()) {
                     displayErrorMessage(null);
                     mainWindow.onLogin();

@@ -1,128 +1,138 @@
 package views;
 
 import grading.GradeCalculator;
+import obj.Assignment;
+import obj.Submission;
+
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
-import obj.Assignment;
-import obj.Submission;
 
+/**
+ * Panel for instructors to view and grade student submissions.
+ */
 public class GradingPanel extends JPanel {
-    private MainWindow mainWindow;
-    private JLabel titleLabel;
+    private final MainWindow mainWindow;
+    private final GradeCalculator calculator;
     private JTable table;
     private DefaultTableModel tableModel;
-    private JButton btnSetGradingRule;
-    private JButton btnBeginGrading;
     private List<String> studentIds;
     private List<String> assignmentIds;
-    private GradeCalculator calculator;
 
     public GradingPanel(MainWindow mainWindow) {
         this.mainWindow = mainWindow;
-        this.calculator = mainWindow.getCurrentCalculator(); 
+        this.calculator = mainWindow.getCurrentCalculator();
 
-        this.studentIds = calculator.getCourse().getEnrolledStudents().stream()
-                .map(s -> s.getId()).collect(Collectors.toList());
+        this.studentIds = calculator.getCourse()
+                .getEnrolledStudents().stream()
+                .map(s -> s.getId())
+                .collect(Collectors.toList());
 
         this.assignmentIds = calculator.getAssignments().stream()
-                .map(Assignment::getId).collect(Collectors.toList());
+                .map(Assignment::getId)
+                .collect(Collectors.toList());
 
-        setLayout(new BorderLayout());
+        setLayout(new BorderLayout(10, 10));
+        initComponents();
+    }
 
-        titleLabel = new JLabel(
-            "Course: " + calculator.getCourse().getCode() +
-            " | Semester: " + calculator.getCourse().getTerm().getSeason() + " " + calculator.getCourse().getTerm().getYear(),
-            SwingConstants.CENTER
+    private void initComponents() {
+        // Title
+        JLabel titleLabel = new JLabel(
+                "Course: " + calculator.getCourse().getCode() +
+                        " | Semester: " + calculator.getCourse().getTerm().getSeason() +
+                        " " + calculator.getCourse().getTerm().getYear(),
+                SwingConstants.CENTER
         );
         titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
         titleLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         add(titleLabel, BorderLayout.NORTH);
 
+        // Table of submissions
         tableModel = buildTableModel();
         table = new JTable(tableModel);
         add(new JScrollPane(table), BorderLayout.CENTER);
 
+        // Buttons
         JPanel buttonPanel = new JPanel(new FlowLayout());
-        btnSetGradingRule = new JButton("Set Grading Rule");
-        btnBeginGrading = new JButton("Begin Grading");
+        JButton btnSetGradingRule = new JButton("Set Grading Rule");
+        JButton btnBeginGrading   = new JButton("Begin Grading");
         buttonPanel.add(btnSetGradingRule);
         buttonPanel.add(btnBeginGrading);
         add(buttonPanel, BorderLayout.SOUTH);
 
         btnSetGradingRule.addActionListener(e -> {
-            SetGradingRulePanel rulePanel = new SetGradingRulePanel(calculator.getAssignmentWeights());
-            rulePanel.setGradeCalculator(calculator);
-            rulePanel.setOnSaveCallback(() -> mainWindow.switchPanel("courseView"));
-            mainWindow.getLoggedInPanel().add(rulePanel, "setGradingRule");
-            mainWindow.switchPanel("setGradingRule");
+            mainWindow.setCurrentCalculator(calculator);
+            mainWindow.getNavigator().push("setGradingRule");
         });
 
         btnBeginGrading.addActionListener(e -> {
             updateFinalScores();
-            GradeStatisticsPanel statPanel = new GradeStatisticsPanel(mainWindow);
-            statPanel.setGradeCalculator(calculator);
-            mainWindow.getLoggedInPanel().add(statPanel, "statistics");
-            mainWindow.switchPanel("statistics");
+            mainWindow.setCurrentCalculator(calculator);
+            mainWindow.getNavigator().push("statistics");
         });
     }
 
     private DefaultTableModel buildTableModel() {
-        String[] columnNames = buildColumnHeaders();
-        Object[][] rowData = buildTableData();
-        return new DefaultTableModel(rowData, columnNames) {
-            public boolean isCellEditable(int row, int column) {
+        String[] cols = buildColumnHeaders();
+        Object[][] data = buildTableData();
+        return new DefaultTableModel(data, cols) {
+            @Override public boolean isCellEditable(int row, int col) {
                 return false;
             }
         };
     }
 
     private String[] buildColumnHeaders() {
-        List<String> columns = new ArrayList<>();
-        columns.add("Student");
-        columns.add("Submitted");
-        columns.addAll(assignmentIds);
-        columns.add("Final Score");
-        return columns.toArray(new String[0]);
+        List<String> cols = new ArrayList<>();
+        cols.add("Student");
+        cols.add("Submitted");
+        cols.addAll(assignmentIds);
+        cols.add("Final Score");
+        return cols.toArray(new String[0]);
     }
 
     private Object[][] buildTableData() {
-        List<Assignment> assignments = calculator.getAssignments();
-        Map<String, Set<String>> studentSubmissions = new HashMap<>();
-        for (Assignment a : assignments) {
+        Map<String, Set<String>> submissions = new HashMap<>();
+        for (Assignment a : calculator.getAssignments()) {
             for (Submission s : a.getSubmissions()) {
-                studentSubmissions
+                submissions
                         .computeIfAbsent(s.getStudent().getId(), k -> new HashSet<>())
                         .add(a.getId());
             }
         }
-
-        Object[][] data = new Object[studentIds.size()][2 + assignmentIds.size() + 1];
-        for (int i = 0; i < studentIds.size(); i++) {
+        int rows = studentIds.size();
+        int cols = 2 + assignmentIds.size() + 1;
+        Object[][] data = new Object[rows][cols];
+        for (int i = 0; i < rows; i++) {
             String sid = studentIds.get(i);
-            Set<String> submitted = studentSubmissions.getOrDefault(sid, new HashSet<>());
-
+            Set<String> done = submissions.getOrDefault(sid, Collections.emptySet());
             data[i][0] = sid;
-            data[i][1] = submitted.size() + "/" + assignmentIds.size();
+            data[i][1] = done.size() + "/" + assignmentIds.size();
             for (int j = 0; j < assignmentIds.size(); j++) {
-                String aid = assignmentIds.get(j);
-                data[i][2 + j] = submitted.contains(aid) ? "✓" : "";
+                data[i][2 + j] = done.contains(assignmentIds.get(j)) ? "✓" : "";
             }
             data[i][2 + assignmentIds.size()] = "";
         }
-
         return data;
     }
 
+    /**
+     * After grading rule or weights have changed, recalc and update the final column.
+     */
     public void updateFinalScores() {
         Map<String, Double> scores = calculator.calculateAllStudentGrades();
-        for (int row = 0; row < studentIds.size(); row++) {
-            String sid = (String) tableModel.getValueAt(row, 0);
-            Double score = scores.get(sid);
-            tableModel.setValueAt(String.format("%.2f", score), row, 2 + assignmentIds.size());
+        for (int i = 0; i < studentIds.size(); i++) {
+            String sid = studentIds.get(i);
+            Double val = scores.getOrDefault(sid, 0.0);
+            tableModel.setValueAt(
+                    String.format("%.2f", val),
+                    i,
+                    2 + assignmentIds.size()
+            );
         }
     }
 }
