@@ -4,6 +4,7 @@ import auth.Auth;
 import grading.GradeCalculator;
 import obj.Course;
 import obj.Instructor;
+import obj.Student;
 import store.FileStore;
 import store.Store;
 import store.StoreExample;
@@ -14,6 +15,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.text.ParseException;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.function.Supplier;
 
 public class MainWindow extends JFrame {
@@ -90,11 +92,39 @@ public class MainWindow extends JFrame {
         //navigator.register("createCourse", () -> new CreateCoursePanel(this));
         navigator.register("courseView",   () -> new CourseViewPanel(this));
         navigator.register("grading",      () -> new GradingPanel(this));
-        navigator.register("assignments",  () ->
-                new AssignmentsScreen(this,
-                        getCurrentCourse(),
-                        navigator::back)
-        );
+
+        navigator.register("assignments", () -> {
+            Course course = getCurrentCourse();
+            Auth.UserType role = getAuth().getUserType();
+
+            switch (role) {
+                case INSTRUCTOR:
+                    // full CRUD view
+                    return new AssignmentsScreen(this,
+                            course,
+                            navigator::back);
+
+                case GRADER:
+                    // read-only + submissions
+                    return new GraderAssignmentsPanel(this,
+                            course,
+                            navigator::back);
+
+                case STUDENT:
+                    // per-student view
+                    Student student = getAuth()
+                            .getStudent()
+                            .orElseThrow(() -> new NoSuchElementException("Student not found"));
+
+                    return new StudentAssignmentsPanel(this,
+                            course,
+                            student,
+                            navigator::back);
+
+                default:
+                    throw new IllegalStateException("Unexpected role: " + role);
+            }
+        });
         navigator.register("roster",       () ->
                 new StudentRosterFrame(this,
                         getCurrentCourse(),

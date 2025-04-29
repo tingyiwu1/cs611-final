@@ -55,10 +55,10 @@ public class CourseViewPanel extends JPanel {
         assignmentsBtn.setEnabled(course != null);
         assignmentsBtn.addActionListener(e -> {
             if (course != null) {
-                mainWindow.setCurrentCourse(course);
                 mainWindow.getNavigator().push("assignments");
             }
         });
+;
         grid.add(assignmentsBtn);
 
         // 2) Roster (instructors only)

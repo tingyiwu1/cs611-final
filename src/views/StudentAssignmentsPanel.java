@@ -1,45 +1,61 @@
-// StudentAssignmentsPanel.java
 package views;
 
 import obj.Assignment;
 import obj.Course;
 import obj.Enrollment;
 import obj.Student;
-import obj.Submission;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
-import java.util.UUID;
 
-/**
- * A student‐centric view of a course’s assignments.
- * Shows name, category, points, submission status, grade, and a text area + button.
- */
 public class StudentAssignmentsPanel extends JPanel {
-    private final Course  course;
-    private final Student student;
+    private final MainWindow mainWindow;
+    private final Course     course;
+    private final Student    student;
     private final Enrollment enrollment;
+    private final Runnable   onBack;
 
-    public StudentAssignmentsPanel(Course course, Student student) {
+    /**
+     * @param mainWindow gives us getNavigator()
+     * @param course     which course
+     * @param student    which student
+     * @param onBack     what to do when Back is clicked
+     */
+    public StudentAssignmentsPanel(MainWindow mainWindow,
+                                   Course course,
+                                   Student student,
+                                   Runnable onBack) {
+        this.mainWindow = mainWindow;
         this.course     = course;
         this.student    = student;
         this.enrollment = course.getEnrollment(student)
                 .orElseThrow(() -> new IllegalStateException("Not enrolled"));
+        this.onBack     = onBack;
         initComponents();
     }
 
     private void initComponents() {
         setLayout(new BorderLayout(10,10));
 
-        JLabel title = new JLabel("Your Assignments: " + course.getCode(), SwingConstants.CENTER);
-        title.setFont(title.getFont().deriveFont(Font.BOLD, 20f));
-        add(title, BorderLayout.NORTH);
+        // ── Top bar ────────────────────────────────
+        JPanel top = new JPanel(new BorderLayout());
+        JButton back = new JButton("Back");
+        back.addActionListener(e -> onBack.run());
+        top.add(back, BorderLayout.WEST);
 
+        JLabel title = new JLabel("Your Assignments – " + course.getCode(),
+                SwingConstants.CENTER);
+        title.setFont(title.getFont().deriveFont(Font.BOLD, 20f));
+        top.add(title, BorderLayout.CENTER);
+
+        add(top, BorderLayout.NORTH);
+
+        // ── Assignment rows ────────────────────────
+        List<Assignment> assignments = course.getAssignments();
         JPanel list = new JPanel();
         list.setLayout(new BoxLayout(list, BoxLayout.Y_AXIS));
 
-        List<Assignment> assignments = course.getAssignments();
         for (Assignment a : assignments) {
             list.add(new AssignmentRow(a));
             list.add(Box.createVerticalStrut(5));
@@ -49,32 +65,29 @@ public class StudentAssignmentsPanel extends JPanel {
     }
 
     private class AssignmentRow extends JPanel {
-        private final Assignment assignment;
-        private Submission submission;
-
+        private obj.Submission submission;
         private final JLabel   statusLabel;
         private final JLabel   gradeLabel;
         private final JTextArea submissionArea;
         private final JButton  submitBtn;
 
         AssignmentRow(Assignment a) {
-            this.assignment = a;
-            // find existing submission
-            this.submission = a.getSubmissions().stream()
-                    .filter(s -> s.getStudent().getId().equals(student.getId()))
-                    .findFirst().orElse(null);
-
             setLayout(new BorderLayout(10,10));
             setBorder(BorderFactory.createLineBorder(Color.GRAY));
 
-            // West: basic info
+            // find existing submission
+            submission = a.getSubmissions().stream()
+                    .filter(s -> s.getStudent().getId().equals(student.getId()))
+                    .findFirst().orElse(null);
+
+            // West: info
             JPanel info = new JPanel(new GridLayout(1,3));
             info.add(new JLabel(a.getName()));
             info.add(new JLabel(a.getCategory().getName()));
             info.add(new JLabel(a.getPoints() + " pts"));
             add(info, BorderLayout.WEST);
 
-            // Center: status, grade, text area
+            // Center: status + text
             JPanel center = new JPanel(new BorderLayout(5,5));
             boolean done = (submission != null);
             statusLabel = new JLabel(done ? "Submitted" : "Not submitted");
@@ -83,41 +96,55 @@ public class StudentAssignmentsPanel extends JPanel {
                             ? "Grade: " + submission.getGrade().get()
                             : "Grade: –"
             );
-            JPanel statusBar = new JPanel(new FlowLayout(FlowLayout.LEFT));
-            statusBar.add(statusLabel);
-            statusBar.add(Box.createHorizontalStrut(20));
-            statusBar.add(gradeLabel);
-            center.add(statusBar, BorderLayout.NORTH);
+            JPanel bar = new JPanel(new FlowLayout(FlowLayout.LEFT));
+            bar.add(statusLabel);
+            bar.add(Box.createHorizontalStrut(20));
+            bar.add(gradeLabel);
+            center.add(bar, BorderLayout.NORTH);
 
-            submissionArea = new JTextArea(3, 20);
+            submissionArea = new JTextArea(3,20);
             if (done) submissionArea.setText(submission.getContent());
             center.add(new JScrollPane(submissionArea), BorderLayout.CENTER);
 
             add(center, BorderLayout.CENTER);
 
-            // East: submit/update button
+            // East: submit/update & view submissions
+            JPanel east = new JPanel(new GridLayout(2,1,5,5));
+
+            JButton viewSubs = new JButton("Submissions");
+            viewSubs.addActionListener(e -> {
+                String key = "submissions:" + a.getId();
+                mainWindow.getNavigator().register(
+                        key,
+                        () -> new SubmissionsScreen(mainWindow, a, onBack)
+                );
+                mainWindow.getNavigator().push(key);
+            });
+            east.add(viewSubs);
+
             submitBtn = new JButton(done ? "Update" : "Submit");
-            submitBtn.addActionListener(e -> onSubmit());
-            add(submitBtn, BorderLayout.EAST);
+            submitBtn.addActionListener(e -> onSubmit(a));
+            east.add(submitBtn);
+
+            add(east, BorderLayout.EAST);
         }
 
-        private void onSubmit() {
+        private void onSubmit(Assignment a) {
             String text = submissionArea.getText().trim();
             if (submission == null) {
-                // new submission
-                submission = enrollment.createSubmission(assignment, text);
+                submission = enrollment.createSubmission(a, text);
             } else {
-                // update existing
                 submission.setContent(text);
             }
-            // persist
             submission.getStore().upsert(submission);
             submission.getStore().save();
 
-            // refresh labels
+            // refresh UI
             statusLabel.setText("Submitted");
             gradeLabel.setText(
-                    submission.getGrade().map(g -> "Grade: " + g).orElse("Grade: –")
+                    submission.getGrade()
+                            .map(g -> "Grade: " + g)
+                            .orElse("Grade: –")
             );
             submitBtn.setText("Update");
         }
