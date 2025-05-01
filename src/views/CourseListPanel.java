@@ -1,7 +1,6 @@
 package views;
 
 import auth.Auth;
-import grading.GradeCalculator;
 import obj.Course;
 import obj.Term;
 
@@ -16,7 +15,7 @@ import java.util.TreeMap;
 
 public class CourseListPanel extends JPanel {
     private final MainWindow mainWindow;
-    private final JPanel     semestersPanel;
+    private final JPanel semestersPanel;
 
     public CourseListPanel(MainWindow mainWindow) {
         this.mainWindow = mainWindow;
@@ -65,9 +64,7 @@ public class CourseListPanel extends JPanel {
             byTerm.computeIfAbsent(c.getTerm(), t -> new ArrayList<>()).add(c);
         }
 
-        byTerm.forEach((term, list) ->
-                semestersPanel.add(createSemesterPanel(term, list))
-        );
+        byTerm.forEach((term, list) -> semestersPanel.add(createSemesterPanel(term, list)));
 
         revalidate();
         repaint();
@@ -108,7 +105,7 @@ public class CourseListPanel extends JPanel {
         card.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                mainWindow.getNavigator().push("createCourse");
+                mainWindow.getNavigator().push(EditCoursePanel.getCreateKey(mainWindow));
             }
         });
         return card;
@@ -122,14 +119,12 @@ public class CourseListPanel extends JPanel {
 
         JLabel info = new JLabel(
                 "<html><b>" + course.getCode() + "</b><br/>" +
-                        course.getName() + "</html>"
-        );
+                        course.getName() + "</html>");
         info.setBorder(new EmptyBorder(10, 10, 10, 10));
 
         JLabel count = new JLabel(
                 course.getAssignmentCount() + " assignments",
-                SwingConstants.CENTER
-        );
+                SwingConstants.CENTER);
         count.setOpaque(true);
         count.setBackground(new Color(0, 80, 100));
         count.setForeground(Color.WHITE);
@@ -141,12 +136,8 @@ public class CourseListPanel extends JPanel {
         card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         card.addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseClicked(MouseEvent e) {
-                mainWindow.setCurrentCourse(course);
-                mainWindow.setCurrentCalculator(
-                        new GradeCalculator(course, course.getAssignments())
-                );
-                mainWindow.getNavigator().push("courseView");
+            public void mouseReleased(MouseEvent e) {
+                mainWindow.getNavigator().push(CourseViewPanel.getKey(mainWindow, course));
             }
         });
         return card;

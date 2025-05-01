@@ -14,11 +14,10 @@ public class Navigator {
     private final Deque<String> history = new ArrayDeque<>();
     private final Map<String, Supplier<JPanel>> suppliers = new HashMap<>();
     private final Map<String, JPanel> screens = new HashMap<>();
-    private String current;
 
     public Navigator(JPanel container, CardLayout layout) {
         this.container = container;
-        this.layout    = layout;
+        this.layout = layout;
     }
 
     /**
@@ -29,17 +28,14 @@ public class Navigator {
         suppliers.put(key, supplier);
     }
 
-    /**
-     * Push a screen by key. Builds a fresh panel via the Supplier each time.
-     */
-    public void push(String key) {
+    private void render() {
+        String key = history.peek();
+        if (key == null) {
+            throw new IllegalStateException("No current screen to render");
+        }
+
         Supplier<JPanel> sup = suppliers.get(key);
-        if (sup == null) {
-            throw new IllegalArgumentException("No screen registered for key: " + key);
-        }
-        if (current != null) {
-            history.push(current);
-        }
+        assert sup != null : "render called without a registered screen:" + key;
 
         // Remove any old instance
         JPanel old = screens.remove(key);
@@ -52,14 +48,59 @@ public class Navigator {
         screens.put(key, panel);
         container.add(panel, key);
 
-        current = key;
         layout.show(container, key);
+    }
+
+    /**
+     * Push a screen by key. Builds a fresh panel via the Supplier each time.
+     */
+    public void push(String key) {
+        if (suppliers.get(key) == null) {
+            throw new IllegalArgumentException("No screen registered for key: " + key);
+        }
+        history.push(key);
+
+        render();
+    }
+
+    /**
+     * Open a new screen by key, replacing the current history entry.
+     */
+    public void replace(String key) {
+        if (suppliers.get(key) == null) {
+            throw new IllegalArgumentException("No screen registered for key: " + key);
+        }
+        if (history.isEmpty()) {
+            throw new IllegalStateException("No current screen to replace");
+        }
+        history.pop();
+        history.push(key);
+        render();
     }
 
     /** Pop back to the previous screen (if any). */
     public void back() {
-        if (history.isEmpty()) return;
-        current = history.pop();
-        layout.show(container, current);
+        if (history.size() < 2) {
+            System.out.println("No previous screen to go back to");
+            return;
+        }
+        history.pop();
+        render();
+    }
+
+    /**
+     * Goes back to a specific screen in the history.
+     * 
+     * This will pop all screens until the specified key is found. If the key is not
+     * in history, an exception is thrown and the history is unchanged.
+     */
+    public void backTo(String key) {
+        if (!history.contains(key)) {
+            throw new NoSuchElementException(key);
+        }
+        while (!history.peek().equals(key)) {
+            history.pop();
+        }
+        render();
     }
 }

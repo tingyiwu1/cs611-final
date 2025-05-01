@@ -90,7 +90,7 @@ public class MainWindow extends JFrame {
         // register every screen by key + Supplier<JPanel>
         navigator.register("courseList",   () -> new CourseListPanel(this));
         //navigator.register("createCourse", () -> new CreateCoursePanel(this));
-        navigator.register("courseView",   () -> new CourseViewPanel(this));
+        // navigator.register("courseView",   () -> new CourseViewPanel(this));
         navigator.register("grading",      () -> new GradingPanel(this));
 
         navigator.register("assignments", () -> {

@@ -9,9 +9,17 @@ import java.awt.*;
 
 public class CourseViewPanel extends JPanel {
     private final MainWindow mainWindow;
+    private final Course course;
 
-    public CourseViewPanel(MainWindow mainWindow) {
+    public static String getKey(MainWindow mainWindow, Course course) {
+        String key = "courseView:" + course.getId();
+        mainWindow.getNavigator().register(key, () -> new CourseViewPanel(mainWindow, course));
+        return key;
+    }
+
+    public CourseViewPanel(MainWindow mainWindow, Course course) {
         this.mainWindow = mainWindow;
+        this.course = course;
         initComponents();
     }
 
@@ -32,7 +40,6 @@ public class CourseViewPanel extends JPanel {
         back.addActionListener(e -> mainWindow.getNavigator().back());
         topBar.add(back, BorderLayout.WEST);
 
-        Course course = mainWindow.getCurrentCourse();
         String title = (course != null)
                 ? course.getCode() + " – " + course.getName()
                 : "No Course Selected";
@@ -46,9 +53,11 @@ public class CourseViewPanel extends JPanel {
         Auth.UserType role = mainWindow.getAuth().getUserType();
         boolean isInstructor = role == Auth.UserType.INSTRUCTOR;
 
+        JPanel grid = new JPanel();
+        grid.setLayout(new BoxLayout(grid, BoxLayout.Y_AXIS));
         // --- Button grid (2×2) ---
-        JPanel grid = new JPanel(new GridLayout(2, 2, 20, 20));
-        grid.setBorder(new EmptyBorder(20, 20, 20, 20));
+        // JPanel grid = new JPanel(new GridLayout(2, 2, 20, 20));
+        // grid.setBorder(new EmptyBorder(20, 20, 20, 20));
 
         // 1) Assignments
         JButton assignmentsBtn = new JButton("Assignments");
@@ -58,7 +67,6 @@ public class CourseViewPanel extends JPanel {
                 mainWindow.getNavigator().push("assignments");
             }
         });
-;
         grid.add(assignmentsBtn);
 
         // 2) Roster (instructors only)
@@ -74,13 +82,13 @@ public class CourseViewPanel extends JPanel {
         grid.add(rosterBtn);
 
         // 3) Placeholder / UNIMPLEMENTED
-        JButton placeholder = new JButton("UNIMPLEMENTED");
-        placeholder.setFont(placeholder.getFont().deriveFont(Font.BOLD, 18f));
-        grid.add(placeholder);
+        JButton editBtn = new JButton("Edit");
+        editBtn.addActionListener(
+                e -> mainWindow.getNavigator().push(EditCoursePanel.getEditKey(mainWindow, course)));
+        grid.add(editBtn);
 
         // 4) Grading
         JButton gradingBtn = new JButton("Grading");
-        gradingBtn.setFont(gradingBtn.getFont().deriveFont(Font.BOLD, 18f));
         gradingBtn.setEnabled(course != null);
         gradingBtn.addActionListener(e -> {
             if (course != null) {

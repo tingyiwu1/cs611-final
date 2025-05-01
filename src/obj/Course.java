@@ -32,16 +32,32 @@ public class Course extends StoredObject {
         return code;
     }
 
+    public void setCode(String code) {
+        this.code = code;
+    }
+
     public String getName() {
         return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public Term getTerm() {
         return term;
     }
 
+    public void setTerm(Term term) {
+        this.term = term;
+    }
+
     public String getDescription() {
         return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public Instructor getInstructor() {
