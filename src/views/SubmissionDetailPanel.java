@@ -1,8 +1,11 @@
 package views;
 
+import obj.Course;
 import obj.Submission;
+import grading.PlagiarismChecker;
 import javax.swing.*;
 import java.awt.*;
+import java.util.Map;
 
 /**
  * Displays the content of a single Submission and allows grading.
@@ -67,6 +70,7 @@ public class SubmissionDetailPanel extends JPanel {
         bottom.add(saveBtn);
 
         add(bottom, BorderLayout.SOUTH);
+
     }
 
     private void onSave() {
@@ -81,5 +85,32 @@ public class SubmissionDetailPanel extends JPanel {
                 "Grade Saved",
                 JOptionPane.INFORMATION_MESSAGE
         );
+
+        // ── PLAGIARISM CHECK ────────────────────────────────
+        double threshold = 0.8;  // flag anything ≥ 80% similar
+
+        // get the course containing this submission
+        Course course = submission.getAssignment().getCourse();
+
+        // compute all submissions whose similarity ≥ threshold
+        Map<Submission, Double> suspects =
+                grading.PlagiarismChecker.flagged(course, submission, threshold);
+
+        // instead of suspects.isEmpty(), use size() > 0
+        if (suspects.size() > 0) {
+            StringBuilder warn = new StringBuilder("Possible high similarity detected:\n\n");
+            for (Map.Entry<Submission, Double> entry : suspects.entrySet()) {
+                Submission other = entry.getKey();
+                String otherStudent = other.getStudent().getName();
+                double pct = entry.getValue() * 100.0;
+                warn.append(String.format("• %s: %.1f%% similar%n", otherStudent, pct));
+            }
+            JOptionPane.showMessageDialog(
+                    this,
+                    warn.toString(),
+                    "Plagiarism Warning",
+                    JOptionPane.WARNING_MESSAGE
+            );
+        }
     }
 }

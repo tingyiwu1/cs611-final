@@ -44,10 +44,6 @@ public class Assignment extends StoredObject {
     return category.get();
   }
 
-  public Course getCourse() {
-    return course.get();
-  }
-
   public void setCategory(Category category) {
     if (!category.getCourseId().equals(course.getId())) {
       throw new IllegalArgumentException("Category does not belong to this course");
