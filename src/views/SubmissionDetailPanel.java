@@ -94,7 +94,7 @@ public class SubmissionDetailPanel extends JPanel {
 
         // compute all submissions whose similarity ≥ threshold
         Map<Submission, Double> suspects =
-                grading.PlagiarismChecker.flagged(course, submission, threshold);
+                PlagiarismChecker.flagged(course, submission, threshold);
 
         if (suspects.size() > 0) {
             StringBuilder warn = new StringBuilder("Possible high similarity detected:\n\n");
