@@ -96,6 +96,7 @@ public class SubmissionDetailPanel extends JPanel {
         Map<Submission, Double> suspects =
                 grading.PlagiarismChecker.flagged(course, submission, threshold);
 
+        // instead of suspects.isEmpty(), use size() > 0
         if (suspects.size() > 0) {
             StringBuilder warn = new StringBuilder("Possible high similarity detected:\n\n");
             for (Map.Entry<Submission, Double> entry : suspects.entrySet()) {
