@@ -1,15 +1,18 @@
 package views;
 
 import grading.GradeCalculator;
-import obj.Assignment;
-import obj.Submission;
-
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import myUtils.ChartUtils;
+import obj.Assignment;
+import obj.Student;
+import obj.Submission;
 
 /**
  * Panel for instructors to view and grade student submissions.
@@ -40,41 +43,144 @@ public class GradingPanel extends JPanel {
     }
 
     private void initComponents() {
-        // Title
-        JLabel titleLabel = new JLabel(
-                "Course: " + calculator.getCourse().getCode() +
-                        " | Semester: " + calculator.getCourse().getTerm().getSeason() +
-                        " " + calculator.getCourse().getTerm().getYear(),
-                SwingConstants.CENTER
-        );
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        titleLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        add(titleLabel, BorderLayout.NORTH);
+    // Title Label
+    JLabel titleLabel = new JLabel(
+            "Course: " + calculator.getCourse().getCode() +
+                    " | Semester: " + calculator.getCourse().getTerm().getSeason() +
+                    " " + calculator.getCourse().getTerm().getYear(),
+            SwingConstants.CENTER
+    );
+    titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
+    titleLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // Table of submissions
-        tableModel = buildTableModel();
-        table = new JTable(tableModel);
-        add(new JScrollPane(table), BorderLayout.CENTER);
+    // 计算当前学生分数
+    Map<String, Double> scores = calculator.calculateAllStudentGrades();
 
-        // Buttons
-        JPanel buttonPanel = new JPanel(new FlowLayout());
-        JButton btnSetGradingRule = new JButton("Set Grading Rule");
-        JButton btnBeginGrading   = new JButton("Begin Grading");
-        buttonPanel.add(btnSetGradingRule);
-        buttonPanel.add(btnBeginGrading);
-        add(buttonPanel, BorderLayout.SOUTH);
+    // 创建统计图（Histogram）
+    JPanel histogramPanel = ChartUtils.createGradeHistogram("Grade Distribution", scores);
+    histogramPanel.setPreferredSize(new Dimension(800, 300));
 
-        btnSetGradingRule.addActionListener(e -> {
-            mainWindow.setCurrentCalculator(calculator);
-            mainWindow.getNavigator().push("setGradingRule");
-        });
+    // 创建一个顶部容器，包含标题和统计图
+    JPanel topPanel = new JPanel(new BorderLayout());
+    topPanel.add(titleLabel, BorderLayout.NORTH);
+    topPanel.add(histogramPanel, BorderLayout.CENTER);
 
-        btnBeginGrading.addActionListener(e -> {
-            updateFinalScores();
-            mainWindow.setCurrentCalculator(calculator);
-            mainWindow.getNavigator().push("statistics");
-        });
+    // 添加顶部容器到主布局
+    add(topPanel, BorderLayout.NORTH);
+
+    // Table of submissions
+    tableModel = buildTableModel();
+    table = new JTable(tableModel);
+    add(new JScrollPane(table), BorderLayout.CENTER);
+
+    // // Buttons
+    // JPanel buttonPanel = new JPanel(new FlowLayout());
+    // JButton btnSetGradingRule = new JButton("Set Grading Rule");
+    // JButton btnBeginGrading   = new JButton("Begin Grading");
+    // buttonPanel.add(btnSetGradingRule);
+    // buttonPanel.add(btnBeginGrading);
+    // add(buttonPanel, BorderLayout.SOUTH);
+    updateFinalScores();
+
+
+    table.addMouseListener(new MouseAdapter() {
+        public void mouseClicked(MouseEvent e) {
+            if (e.getClickCount() == 1) { // 单击事件
+                int row = table.getSelectedRow();
+                if (row >= 0) {
+                    String studentId = (String) table.getValueAt(row, 0);
+                    showStudentScoreDetails(studentId);
+                }
+            }
+        }
+    });
+
+    // btnSetGradingRule.addActionListener(e -> {
+    //     mainWindow.setCurrentCalculator(calculator);
+    //     mainWindow.getNavigator().push("setGradingRule");
+    // });
+
+    // btnBeginGrading.addActionListener(e -> {
+    //     updateFinalScores();
+    //     mainWindow.setCurrentCalculator(calculator);
+    //     mainWindow.getNavigator().push("statistics");
+    // });
     }
+    private void showStudentScoreDetails(String studentId) {
+        Student student = calculator.getCourse().getEnrolledStudents().stream()
+                .filter(s -> s.getId().equals(studentId))
+                .findFirst()
+                .orElse(null);
+
+        if (student == null) {
+            JOptionPane.showMessageDialog(this, "Student not found.");
+            return;
+        }
+
+        JDialog detailDialog = new JDialog(mainWindow, "Score Details for " + studentId, true);
+        detailDialog.setSize(500, 300);
+        detailDialog.setLocationRelativeTo(this);
+
+        JPanel detailPanel = new JPanel(new BorderLayout(10, 10));
+        detailPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        // 创建详细得分表格
+        List<Assignment> assignments = calculator.getAssignments();
+        String[] columns = {"Assignment Name", "Score", "Weight", "Normalized Weight", "Credit"};
+        Object[][] data = new Object[assignments.size() + 1][5]; // 多一行用于总成绩
+        
+        double totalWeight = assignments.stream()
+                .mapToDouble(a -> calculator.getAssignmentWeights().getOrDefault(a.getId(), 0.0))
+                .sum();
+        
+        double totalCredit = 0.0;
+        
+        for (int i = 0; i < assignments.size(); i++) {
+            Assignment a = assignments.get(i);
+            Submission sub = a.getSubmissions().stream()
+                    .filter(s -> s.getStudent().getId().equals(studentId))
+                    .findFirst()
+                    .orElse(null);
+        
+            String scoreText;
+            double credit = 0.0;
+        
+            double weight = calculator.getAssignmentWeights().getOrDefault(a.getId(), 0.0);
+            double normalizedWeight = (totalWeight == 0) ? 0 : (weight / totalWeight) * 100.0;
+        
+            if (sub != null && sub.getGrade().isPresent()) {
+                int grade = sub.getGrade().get();
+                scoreText = String.format("%.2f / %.2f", (double) grade, (double) a.getPoints());
+                credit = grade * (normalizedWeight / 100.0);
+            } else {
+                scoreText = "0 / " + a.getPoints();
+            }
+        
+            totalCredit += credit;
+        
+            data[i][0] = a.getName();
+            data[i][1] = scoreText;
+            data[i][2] = String.format("%.2f%%", weight);
+            data[i][3] = String.format("%.2f", normalizedWeight);
+            data[i][4] = String.format("%.2f", credit);
+        }
+        
+        // ✅ 添加最后一行显示总成绩
+        data[assignments.size()][0] = "Total Score";
+        data[assignments.size()][1] = "";
+        data[assignments.size()][2] = "";
+        data[assignments.size()][3] = "";
+        data[assignments.size()][4] = String.format("%.2f", totalCredit);
+        
+
+        JTable detailTable = new JTable(data, columns);
+        detailTable.setEnabled(false);
+        detailPanel.add(new JScrollPane(detailTable), BorderLayout.CENTER);
+
+        detailDialog.setContentPane(detailPanel);
+        detailDialog.setVisible(true);
+    }
+
 
     private DefaultTableModel buildTableModel() {
         String[] cols = buildColumnHeaders();
@@ -134,5 +240,17 @@ public class GradingPanel extends JPanel {
                     2 + assignmentIds.size()
             );
         }
+    
+        // update histogram
+        JPanel histogramPanel = ChartUtils.createGradeHistogram("Grade Distribution", scores);
+        histogramPanel.setPreferredSize(new Dimension(800, 300));
+    
+        // get top panel
+        JPanel topPanel = (JPanel) getComponent(0);
+        topPanel.remove(1); // remove old histogram
+        topPanel.add(histogramPanel, BorderLayout.CENTER);
+        topPanel.revalidate();
+        topPanel.repaint();
     }
+    
 }
