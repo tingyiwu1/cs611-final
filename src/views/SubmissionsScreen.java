@@ -50,7 +50,10 @@ public class SubmissionsScreen extends JPanel {
 
         // Populate the list with student IDs
         for (Submission sub : assignment.getSubmissions()) {
-            studentsModel.addElement(sub.getStudent().getId());
+            String studentId = sub.getStudent().getId();
+    String scoreStr = sub.getGrade().map(Object::toString).orElse("Not graded");
+    studentsModel.addElement(studentId + " (score: " + scoreStr + ")");
+            //studentsModel.addElement(sub.getStudent().getId());
         }
 
         studentsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);

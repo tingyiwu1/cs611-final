@@ -17,7 +17,7 @@ public class GradeCalculator {
         this.course = course;
         this.assignments = assignments;
         this.assignmentWeights = new HashMap<>();
-        this.strategy = new RatioStrategy(); 
+        this.strategy = new CategoryRatioStrategy(); 
         initializeDefaultWeights();
     }
 
