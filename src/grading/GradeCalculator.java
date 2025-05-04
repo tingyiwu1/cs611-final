@@ -3,6 +3,7 @@ package grading;
 import java.io.*;
 import java.util.*;
 import obj.Assignment;
+import obj.Category;
 import obj.Course;
 import obj.Submission;
 
@@ -22,10 +23,19 @@ public class GradeCalculator {
 
     private void initializeDefaultWeights() {
         if (assignments == null || assignments.isEmpty()) return;
-        double averageWeight = 100.0 / assignments.size();  // 总共100%平分
+    
+        // clean weight
+        assignmentWeights.clear();
+    
         for (Assignment a : assignments) {
-            assignmentWeights.put(a.getId(), averageWeight);
+            Category category = a.getCategory();
+    
+            // read weight from category, zero by default
+            double weight = (category != null) ? category.getWeight() : 0;
+    
+            assignmentWeights.put(a.getId(), weight);
         }
+    
     }
 
     public void setAssignmentWeight(String assignmentId, double weight) {

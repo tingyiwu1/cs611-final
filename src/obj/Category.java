@@ -54,4 +54,9 @@ public class Category extends StoredObject {
       Date dueDate) {
     return new Assignment(store, assignmentId, name, getCourseId(), getId(), points, isPublished, dueDate);
   }
+
+  @Override
+  public String toString() {
+    return name + " (weight: " + weight + ")";
+  }
 }

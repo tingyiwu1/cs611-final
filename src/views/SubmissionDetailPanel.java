@@ -14,28 +14,30 @@ import java.util.Map;
 public class SubmissionDetailPanel extends JPanel {
     private final MainWindow mainWindow;
     private final Submission submission;
-    private final Runnable onBack;
     private final JTextArea submissionArea;
     private final JSpinner gradeSpinner;
 
+    public static String getKey(MainWindow mainWindow, Submission submission) {
+        String key = "submission:" + submission.getId();
+        mainWindow.getNavigator().register(key, () -> new SubmissionDetailPanel(mainWindow, submission));
+        return key;
+    }
+
     /**
-     * @param mainWindow  for navigation callbacks
-     * @param submission  the submission to display
-     * @param onBack      pop back to previous screen
+     * @param mainWindow for navigation callbacks
+     * @param submission the submission to display
+     * @param onBack     pop back to previous screen
      */
-    public SubmissionDetailPanel(MainWindow mainWindow,
-                                 Submission submission,
-                                 Runnable onBack) {
+    private SubmissionDetailPanel(MainWindow mainWindow, Submission submission) {
         this.mainWindow = mainWindow;
         this.submission = submission;
-        this.onBack     = onBack;
 
         setLayout(new BorderLayout(10, 10));
 
         // Top bar with Back Button and title
         JPanel top = new JPanel(new BorderLayout());
         JButton backButton = new JButton("Back");
-        backButton.addActionListener(e -> onBack.run());
+        backButton.addActionListener(e -> mainWindow.getNavigator().back());
         top.add(backButton, BorderLayout.WEST);
 
         String studentName = submission.getStudent().getName();
@@ -56,13 +58,12 @@ public class SubmissionDetailPanel extends JPanel {
         bottom.add(new JLabel("Grade:"));
 
         int initial = submission.getGrade().orElse(0);
-        int maxPts  = submission.getAssignment().getPoints();
+        int maxPts = submission.getAssignment().getPoints();
         gradeSpinner = new JSpinner(new SpinnerNumberModel(
                 initial,
                 0,
                 maxPts,
-                1
-        ));
+                1));
         bottom.add(gradeSpinner);
 
         JButton saveBtn = new JButton("Save Grade");
@@ -70,7 +71,6 @@ public class SubmissionDetailPanel extends JPanel {
         bottom.add(saveBtn);
 
         add(bottom, BorderLayout.SOUTH);
-
     }
 
     private void onSave() {

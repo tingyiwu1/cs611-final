@@ -10,6 +10,7 @@ import java.awt.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
 /**
@@ -20,24 +21,30 @@ public class AssignmentEditorPanel extends JPanel {
   private final MainWindow mainWindow;
   private final Course course;
   private Assignment current;
-  private final Runnable onBack;
   private final SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd");
 
-  private JTextField       nameField;
+  private JTextField nameField;
   private JComboBox<Category> categoryBox;
-  private JSpinner         pointsSpinner;
-  private JTextField       dueField;
+  private JSpinner pointsSpinner;
+  private JTextField dueField;
 
-  public AssignmentEditorPanel(MainWindow mainWindow,
-                               Course course,
-                               Assignment toEdit,
-                               Runnable onBack) {
+  public static String getKey(MainWindow mainWindow,
+      Course course,
+      Assignment toEdit) {
+    String key = "assignmentEditor:" + (toEdit != null ? toEdit.getId() : "new");
+    mainWindow.getNavigator().register(key, () -> new AssignmentEditorPanel(mainWindow, course, toEdit));
+    return key;
+  }
+
+  private AssignmentEditorPanel(MainWindow mainWindow,
+      Course course,
+      Assignment toEdit) {
     this.mainWindow = mainWindow;
-    this.course     = course;
-    this.current    = toEdit;
-    this.onBack     = onBack;
+    this.course = course;
+    this.current = toEdit;
     initComponents();
-    if (current != null) loadFields();
+    if (current != null)
+      loadFields();
   }
 
   private void initComponents() {
@@ -46,7 +53,7 @@ public class AssignmentEditorPanel extends JPanel {
     // Top bar with Back button and title
     JPanel top = new JPanel(new BorderLayout());
     JButton backButton = new JButton("Back");
-    backButton.addActionListener(e -> onBack.run());
+    backButton.addActionListener(e -> mainWindow.getNavigator().back());
     top.add(backButton, BorderLayout.WEST);
 
     String title = (current == null) ? "Create Assignment" : "Edit Assignment";
@@ -58,25 +65,28 @@ public class AssignmentEditorPanel extends JPanel {
     // Form
     JPanel form = new JPanel(new GridBagLayout());
     GridBagConstraints gbc = new GridBagConstraints();
-    gbc.insets = new Insets(5,5,5,5);
+    gbc.insets = new Insets(5, 5, 5, 5);
     gbc.anchor = GridBagConstraints.WEST;
 
     // Name
-    gbc.gridx = 0; gbc.gridy = 0;
+    gbc.gridx = 0;
+    gbc.gridy = 0;
     form.add(new JLabel("Name:"), gbc);
     nameField = new JTextField(20);
     gbc.gridx = 1;
     form.add(nameField, gbc);
 
     // Category
-    gbc.gridx = 0; gbc.gridy = 1;
+    gbc.gridx = 0;
+    gbc.gridy = 1;
     form.add(new JLabel("Category:"), gbc);
     categoryBox = new JComboBox<>(course.getCategories().toArray(new Category[0]));
     gbc.gridx = 1;
     form.add(categoryBox, gbc);
 
     // Points
-    gbc.gridx = 0; gbc.gridy = 2;
+    gbc.gridx = 0;
+    gbc.gridy = 2;
     form.add(new JLabel("Points:"), gbc);
     int initPts = (current != null) ? current.getPoints() : 0;
     pointsSpinner = new JSpinner(new SpinnerNumberModel(initPts, 0, Integer.MAX_VALUE, 1));
@@ -84,7 +94,8 @@ public class AssignmentEditorPanel extends JPanel {
     form.add(pointsSpinner, gbc);
 
     // Due date
-    gbc.gridx = 0; gbc.gridy = 3;
+    gbc.gridx = 0;
+    gbc.gridy = 3;
     form.add(new JLabel("Due Date (YYYY-MM-DD):"), gbc);
     dueField = new JTextField(10);
     gbc.gridx = 1;
@@ -94,8 +105,8 @@ public class AssignmentEditorPanel extends JPanel {
 
     // Actions: Save, Delete, Publish
     JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-    JButton saveBtn    = new JButton("Save");
-    JButton deleteBtn  = new JButton("Delete");
+    JButton saveBtn = new JButton("Save");
+    JButton deleteBtn = new JButton("Delete");
     JButton publishBtn = new JButton("Publish");
 
     saveBtn.addActionListener(e -> onSave());
@@ -119,26 +130,25 @@ public class AssignmentEditorPanel extends JPanel {
     try {
       String name = nameField.getText().trim();
       Category cat = (Category) categoryBox.getSelectedItem();
-      int pts     = (Integer) pointsSpinner.getValue();
-      Date due    = fmt.parse(dueField.getText().trim());
+      int pts = (Integer) pointsSpinner.getValue();
+      Date due = fmt.parse(dueField.getText().trim());
 
       Store store = mainWindow.getStore();
 
       if (current == null) {
         // Create a new assignment
         Assignment a = course.createAssignment(
-                UUID.randomUUID().toString(),
-                name,
-                cat,
-                pts,
-                false,
-                due
-        );
+            UUID.randomUUID().toString(),
+            name,
+            cat,
+            pts,
+            false,
+            due);
         store.upsert(a);
         store.save();
         JOptionPane.showMessageDialog(this,
-                "Created assignment: " + a.getName(),
-                "Saved", JOptionPane.INFORMATION_MESSAGE);
+            "Created assignment: " + a.getName(),
+            "Saved", JOptionPane.INFORMATION_MESSAGE);
       } else {
         // Update existing
         current.setName(name);
@@ -149,14 +159,18 @@ public class AssignmentEditorPanel extends JPanel {
         store.upsert(current);
         store.save();
         JOptionPane.showMessageDialog(this,
-                "Updated assignment: " + current.getName(),
-                "Saved", JOptionPane.INFORMATION_MESSAGE);
+            "Updated assignment: " + current.getName(),
+            "Saved", JOptionPane.INFORMATION_MESSAGE);
       }
 
-      onBack.run();
+      try {
+        mainWindow.getNavigator().backTo(CourseViewPanel.getKey(mainWindow, course));
+      } catch (NoSuchElementException e) {
+        mainWindow.getNavigator().back();
+      }
     } catch (ParseException ex) {
       JOptionPane.showMessageDialog(this,
-              "Invalid date format", "Error", JOptionPane.ERROR_MESSAGE);
+          "Invalid date format", "Error", JOptionPane.ERROR_MESSAGE);
     }
   }
 
@@ -165,9 +179,13 @@ public class AssignmentEditorPanel extends JPanel {
       current.delete();
       mainWindow.getStore().save();
       JOptionPane.showMessageDialog(this,
-              "Deleted assignment: " + current.getName(),
-              "Deleted", JOptionPane.INFORMATION_MESSAGE);
-      onBack.run();
+          "Deleted assignment: " + current.getName(),
+          "Deleted", JOptionPane.INFORMATION_MESSAGE);
+      try {
+        mainWindow.getNavigator().backTo(CourseViewPanel.getKey(mainWindow, course));
+      } catch (NoSuchElementException e) {
+        mainWindow.getNavigator().back();
+      }
     }
   }
 
@@ -178,8 +196,8 @@ public class AssignmentEditorPanel extends JPanel {
       store.upsert(current);
       store.save();
       JOptionPane.showMessageDialog(this,
-              "Published assignment: " + current.getName(),
-              "Published", JOptionPane.INFORMATION_MESSAGE);
+          "Published assignment: " + current.getName(),
+          "Published", JOptionPane.INFORMATION_MESSAGE);
     }
   }
 }

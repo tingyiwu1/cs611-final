@@ -7,30 +7,37 @@ import obj.Course;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.List;
 
 public class StudentRosterFrame extends JPanel {
+    private final MainWindow mainWindow;
     private final Course course;
 
-    /**
-     * @param mainWindow  so you can call navigator.back() if needed
-     * @param course      whose roster to display
-     * @param onBack      Runnable to pop back to the previous card
-     */
-    public StudentRosterFrame(MainWindow mainWindow,
-                       Course course,
-                       Runnable onBack) {
-        this.course = course;
-        initComponents(onBack);
+    public static String getKey(MainWindow mainWindow, Course course) {
+        String key = "roster:" + course.getId();
+        mainWindow.getNavigator().register(key,
+                () -> new StudentRosterFrame(mainWindow, course));
+        return key;
     }
 
-    private void initComponents(Runnable onBack) {
+    /**
+     * @param mainWindow so you can call navigator.back() if needed
+     * @param course     whose roster to display
+     * @param onBack     Runnable to pop back to the previous card
+     */
+    private StudentRosterFrame(MainWindow mainWindow,
+            Course course) {
+        this.mainWindow = mainWindow;
+        this.course = course;
+        initComponents();
+    }
+
+    private void initComponents() {
         setLayout(new BorderLayout(10, 10));
 
         // ── Top bar ────────────────────────────────
         JPanel topBar = new JPanel(new FlowLayout(FlowLayout.LEFT));
         JButton back = new JButton("Back");
-        back.addActionListener(e -> onBack.run());
+        back.addActionListener(e -> mainWindow.getNavigator().back());
         topBar.add(back);
 
         JLabel title = new JLabel(course.getCode() + " Roster");

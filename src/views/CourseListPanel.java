@@ -3,6 +3,7 @@ package views;
 import auth.Auth;
 import obj.Course;
 import obj.Term;
+import views.editcourse.EditCoursePanel;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -17,7 +18,13 @@ public class CourseListPanel extends JPanel {
     private final MainWindow mainWindow;
     private final JPanel semestersPanel;
 
-    public CourseListPanel(MainWindow mainWindow) {
+    public static String getKey(MainWindow mainWindow) {
+        String key = "courseList";
+        mainWindow.getNavigator().register(key, () -> new CourseListPanel(mainWindow));
+        return key;
+    }
+
+    private CourseListPanel(MainWindow mainWindow) {
         this.mainWindow = mainWindow;
 
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
@@ -104,7 +111,7 @@ public class CourseListPanel extends JPanel {
         card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         card.addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseClicked(MouseEvent e) {
+            public void mouseReleased(MouseEvent e) {
                 mainWindow.getNavigator().push(EditCoursePanel.getCreateKey(mainWindow));
             }
         });
