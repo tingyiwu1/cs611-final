@@ -18,7 +18,13 @@ public class CourseListPanel extends JPanel {
     private final MainWindow mainWindow;
     private final JPanel semestersPanel;
 
-    public CourseListPanel(MainWindow mainWindow) {
+    public static String getKey(MainWindow mainWindow) {
+        String key = "courseList";
+        mainWindow.getNavigator().register(key, () -> new CourseListPanel(mainWindow));
+        return key;
+    }
+
+    private CourseListPanel(MainWindow mainWindow) {
         this.mainWindow = mainWindow;
 
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));

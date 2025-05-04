@@ -14,18 +14,20 @@ import java.awt.*;
 public class SubmissionsScreen extends JPanel {
     private final MainWindow mainWindow;
     private final Assignment assignment;
-    private final Runnable onBack;
     private final DefaultListModel<String> studentsModel;
     private final JList<String> studentsList;
 
-    public SubmissionsScreen(MainWindow mainWindow,
-                             Assignment assignment,
-                             Runnable onBack) {
+    public static String getKey(MainWindow mainWindow, Assignment assignment) {
+        String key = "submissions:" + assignment.getId();
+        mainWindow.getNavigator().register(key, () -> new SubmissionsScreen(mainWindow, assignment));
+        return key;
+    }
+
+    private SubmissionsScreen(MainWindow mainWindow, Assignment assignment) {
         this.mainWindow = mainWindow;
         this.assignment = assignment;
-        this.onBack = onBack;
         this.studentsModel = new DefaultListModel<>();
-        this.studentsList  = new JList<>(studentsModel);
+        this.studentsList = new JList<>(studentsModel);
         initComponents();
     }
 
@@ -35,13 +37,12 @@ public class SubmissionsScreen extends JPanel {
         // Top bar
         JPanel topPanel = new JPanel(new BorderLayout());
         JButton backButton = new JButton("Back");
-        backButton.addActionListener(e -> onBack.run());
+        backButton.addActionListener(e -> mainWindow.getNavigator().back());
         topPanel.add(backButton, BorderLayout.WEST);
 
         JLabel titleLabel = new JLabel(
                 "Submissions – " + assignment.getName(),
-                SwingConstants.CENTER
-        );
+                SwingConstants.CENTER);
         titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 20f));
         topPanel.add(titleLabel, BorderLayout.CENTER);
 
@@ -64,16 +65,13 @@ public class SubmissionsScreen extends JPanel {
     }
 
     private void openDetail(String studentId) {
-        if (studentId == null) return;
+        if (studentId == null)
+            return;
         Submission found = assignment.getSubmissions().stream()
                 .filter(s -> s.getStudent().getId().equals(studentId))
                 .findFirst().orElse(null);
-        if (found == null) return;
-
-        String key = "submissionDetail:" + studentId;
-        mainWindow.getNavigator().register(key,
-                () -> new SubmissionDetailPanel(mainWindow, found, onBack)
-        );
-        mainWindow.getNavigator().push(key);
+        if (found == null)
+            return;
+        mainWindow.getNavigator().push(SubmissionDetailPanel.getKey(mainWindow, found));
     }
 }

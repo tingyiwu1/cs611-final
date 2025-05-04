@@ -9,30 +9,35 @@ import java.util.List;
 
 public class GraderAssignmentsPanel extends JPanel {
     private final MainWindow mainWindow;
-    private final Course     course;
-    private final Runnable   onBack;
+    private final Course course;
+
+    public static String getKey(MainWindow mainWindow, Course course) {
+        String key = "graderAssignments:" + course.getId();
+        mainWindow.getNavigator().register(key,
+                () -> new GraderAssignmentsPanel(mainWindow, course, () -> mainWindow.getNavigator().back()));
+        return key;
+    }
 
     /**
      * @param mainWindow gives us getNavigator()
      * @param course     whose assignments
      * @param onBack     what to do when Back is clicked
      */
-    public GraderAssignmentsPanel(MainWindow mainWindow,
-                                  Course course,
-                                  Runnable onBack) {
+    private GraderAssignmentsPanel(MainWindow mainWindow,
+            Course course,
+            Runnable onBack) {
         this.mainWindow = mainWindow;
-        this.course     = course;
-        this.onBack     = onBack;
+        this.course = course;
         initComponents();
     }
 
     private void initComponents() {
-        setLayout(new BorderLayout(10,10));
+        setLayout(new BorderLayout(10, 10));
 
         // ── Top bar ────────────────────────────────
         JPanel top = new JPanel(new BorderLayout());
         JButton back = new JButton("Back");
-        back.addActionListener(e -> onBack.run());
+        back.addActionListener(e -> mainWindow.getNavigator().back());
         top.add(back, BorderLayout.WEST);
 
         JLabel title = new JLabel("Assignments – " + course.getCode(),
@@ -47,22 +52,14 @@ public class GraderAssignmentsPanel extends JPanel {
         JPanel list = new JPanel();
         list.setLayout(new BoxLayout(list, BoxLayout.Y_AXIS));
         for (Assignment a : listData) {
-            JPanel row = new JPanel(new BorderLayout(5,5));
+            JPanel row = new JPanel(new BorderLayout(5, 5));
             row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
 
             JLabel info = new JLabel(a.getName() + " — " + a.getPoints() + " pts");
             row.add(info, BorderLayout.WEST);
 
             JButton subs = new JButton("Submissions");
-            subs.addActionListener(e -> {
-                // register & push dynamic submissions screen
-                String key = "submissions:" + a.getId();
-                mainWindow.getNavigator().register(
-                        key,
-                        () -> new SubmissionsScreen(mainWindow, a, onBack)
-                );
-                mainWindow.getNavigator().push(key);
-            });
+            subs.addActionListener(ev -> mainWindow.getNavigator().push(SubmissionsScreen.getKey(mainWindow, a)));
             row.add(subs, BorderLayout.EAST);
 
             list.add(row);
