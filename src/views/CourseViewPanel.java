@@ -2,9 +2,9 @@ package views;
 
 import auth.Auth;
 import obj.Course;
+import views.editcourse.EditCoursePanel;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
 public class CourseViewPanel extends JPanel {
@@ -63,8 +63,12 @@ public class CourseViewPanel extends JPanel {
         JButton assignmentsBtn = new JButton("Assignments");
         assignmentsBtn.setEnabled(course != null);
         assignmentsBtn.addActionListener(e -> {
-            if (course != null) {
-                mainWindow.getNavigator().push("assignments");
+            if (isInstructor) {
+                mainWindow.getNavigator().push(AssignmentsScreen.getKey(mainWindow, course));
+            } else if (role == Auth.UserType.GRADER) {
+                mainWindow.getNavigator().push(GraderAssignmentsPanel.getKey(mainWindow, course));
+            } else {
+                mainWindow.getNavigator().push(StudentAssignmentsPanel.getKey(mainWindow, course));
             }
         });
         grid.add(assignmentsBtn);
@@ -73,16 +77,14 @@ public class CourseViewPanel extends JPanel {
         JButton rosterBtn = new JButton("Roster");
         rosterBtn.setEnabled(isInstructor && course != null);
         rosterBtn.setVisible(isInstructor);
-        rosterBtn.addActionListener(e -> {
-            if (course != null) {
-                mainWindow.setCurrentCourse(course);
-                mainWindow.getNavigator().push("roster");
-            }
-        });
+        rosterBtn.addActionListener(
+                e -> mainWindow.getNavigator().push(StudentRosterFrame.getKey(mainWindow, course)));
         grid.add(rosterBtn);
 
-        // 3) Placeholder / UNIMPLEMENTED
+        // 3) Edit button (instructors only)
         JButton editBtn = new JButton("Edit");
+        editBtn.setEnabled(isInstructor && course != null);
+        editBtn.setVisible(isInstructor);
         editBtn.addActionListener(
                 e -> mainWindow.getNavigator().push(EditCoursePanel.getEditKey(mainWindow, course)));
         grid.add(editBtn);
@@ -90,12 +92,8 @@ public class CourseViewPanel extends JPanel {
         // 4) Grading
         JButton gradingBtn = new JButton("Grading");
         gradingBtn.setEnabled(course != null);
-        gradingBtn.addActionListener(e -> {
-            if (course != null) {
-                mainWindow.setCurrentCourse(course);
-                mainWindow.getNavigator().push("grading");
-            }
-        });
+        gradingBtn.addActionListener(
+                e -> mainWindow.getNavigator().push(GradingPanel.getKey(mainWindow, course)));
         grid.add(gradingBtn);
 
         add(grid, BorderLayout.CENTER);

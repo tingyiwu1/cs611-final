@@ -15,34 +15,38 @@ public class AssignmentsScreen extends JPanel {
   private final Course course;
   private final Assignment[] assignments;
 
-  /**
-   * @param mainWindow  so you can push other screens
-   * @param course      which course’s assignments to show
-   * @param onBack      Runnable to pop back to the previous card
-   */
-  public AssignmentsScreen(MainWindow mainWindow,
-                           Course course,
-                           Runnable onBack) {
-    this.mainWindow = mainWindow;
-    this.course     = course;
-    this.assignments = course != null
-            ? course.getAssignments().toArray(new Assignment[0])
-            : new Assignment[0];
-
-    initComponents(onBack);
+  public static String getKey(MainWindow mainWindow, Course course) {
+    String key = "assignments:" + course.getId();
+    mainWindow.getNavigator().register(key, () -> new AssignmentsScreen(mainWindow, course));
+    return key;
   }
 
-  private void initComponents(Runnable onBack) {
+  /**
+   * @param mainWindow so you can push other screens
+   * @param course     which course’s assignments to show
+   * @param onBack     Runnable to pop back to the previous card
+   */
+  private AssignmentsScreen(MainWindow mainWindow, Course course) {
+    this.mainWindow = mainWindow;
+    this.course = course;
+    this.assignments = course != null
+        ? course.getAssignments().toArray(new Assignment[0])
+        : new Assignment[0];
+
+    initComponents();
+  }
+
+  private void initComponents() {
     setLayout(new BorderLayout(10, 10));
 
     // ── Top bar ────────────────────────────────
     JPanel topBar = new JPanel(new BorderLayout());
     JButton back = new JButton("Back");
-    back.addActionListener(e -> onBack.run());
+    back.addActionListener(e -> mainWindow.getNavigator().back());
     topBar.add(back, BorderLayout.WEST);
 
     JLabel title = new JLabel("Assignments – " + course.getCode(),
-            SwingConstants.CENTER);
+        SwingConstants.CENTER);
     title.setFont(title.getFont().deriveFont(Font.BOLD, 20f));
     topBar.add(title, BorderLayout.CENTER);
 
@@ -62,25 +66,12 @@ public class AssignmentsScreen extends JPanel {
 
       // Edit button: open AssignmentEditorPanel
       JButton edit = new JButton("Edit");
-      edit.addActionListener(ev -> {
-        String key = "assignmentEditor:" + a.getId();
-        // register dynamic screen
-        mainWindow.getNavigator().register(key,
-                () -> new AssignmentEditorPanel(mainWindow, course, a, onBack)
-        );
-        mainWindow.getNavigator().push(key);
-      });
+      edit.addActionListener(ev -> mainWindow.getNavigator().push(AssignmentEditorPanel.getKey(mainWindow, course, a)));
       row.add(edit);
 
       // Submissions button: open SubmissionsScreen
       JButton subs = new JButton("Submissions");
-      subs.addActionListener(ev -> {
-        String key = "submissions:" + a.getId();
-        mainWindow.getNavigator().register(key,
-                () -> new SubmissionsScreen(mainWindow, a, onBack)
-        );
-        mainWindow.getNavigator().push(key);
-      });
+      subs.addActionListener(ev -> mainWindow.getNavigator().push(SubmissionsScreen.getKey(mainWindow, a)));
       row.add(subs);
 
       list.add(row);
@@ -91,13 +82,8 @@ public class AssignmentsScreen extends JPanel {
     // ── Bottom bar ────────────────────────────
     JPanel bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT));
     JButton create = new JButton("Create New Assignment");
-    create.addActionListener(e -> {
-      String key = "assignmentEditor:new";
-      mainWindow.getNavigator().register(key,
-              () -> new AssignmentEditorPanel(mainWindow, course, null, onBack)
-      );
-      mainWindow.getNavigator().push(key);
-    });
+    create.addActionListener(
+        ev -> mainWindow.getNavigator().push(AssignmentEditorPanel.getKey(mainWindow, course, null)));
     bottom.add(create);
     add(bottom, BorderLayout.SOUTH);
   }
