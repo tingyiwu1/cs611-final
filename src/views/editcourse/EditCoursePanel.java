@@ -1,4 +1,4 @@
-package views;
+package views.editcourse;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -6,18 +6,26 @@ import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 
+import obj.Category;
 import obj.Course;
 import obj.Term;
+import views.CourseViewPanel;
+import views.MainWindow;
 
 public class EditCoursePanel extends JPanel {
   public static enum EditMode {
@@ -35,6 +43,8 @@ public class EditCoursePanel extends JPanel {
   private JTextField courseDescriptionField;
   private JComboBox<Term.Season> seasonBox;
   private JTextField yearField;
+
+  private EditCategoriesPanel categoriesPanel;
 
   public static String getCreateKey(MainWindow mainWindow) {
     String key = "createCourse";
@@ -100,51 +110,22 @@ public class EditCoursePanel extends JPanel {
     add(top, BorderLayout.NORTH);
 
     // Form
-    JPanel form = new JPanel(new GridBagLayout());
-    GridBagConstraints gbc = new GridBagConstraints();
-    gbc.insets = new java.awt.Insets(5, 5, 5, 5);
-    gbc.anchor = GridBagConstraints.WEST;
+    JPanel form = new JPanel();
+    form.setLayout(new BoxLayout(form, BoxLayout.Y_AXIS));
 
-    // course number
-    gbc.gridx = 0;
-    gbc.gridy = 0;
-    form.add(new JLabel("Course Number:"), gbc);
-    courseNumberField = new JTextField(20);
-    gbc.gridx = 1;
-    form.add(courseNumberField, gbc);
+    form.add(createInfoSection());
 
-    // course name
-    gbc.gridx = 0;
-    gbc.gridy = 1;
-    form.add(new JLabel("Course Name:"), gbc);
-    courseNameField = new JTextField(20);
-    gbc.gridx = 1;
-    form.add(courseNameField, gbc);
+    this.categoriesPanel = new EditCategoriesPanel();
 
-    // course description
-    gbc.gridx = 0;
-    gbc.gridy = 2;
-    form.add(new JLabel("Course Description:"), gbc);
-    courseDescriptionField = new JTextField(20);
-    gbc.gridx = 1;
-    form.add(courseDescriptionField, gbc);
+    form.add(categoriesPanel);
 
-    // course season
-    gbc.gridx = 0;
-    gbc.gridy = 3;
-    form.add(new JLabel("Course Season:"), gbc);
-    seasonBox = new JComboBox<>(Term.Season.values());
-    gbc.gridx = 1;
-    form.add(seasonBox, gbc);
-    // course year
-    gbc.gridx = 0;
-    gbc.gridy = 4;
-    form.add(new JLabel("Course Year:"), gbc);
-    yearField = new JTextField(20);
-    gbc.gridx = 1;
-    form.add(yearField, gbc);
+    form.add(Box.createVerticalGlue());
 
-    add(form, BorderLayout.CENTER);
+    JScrollPane scrollPane = new JScrollPane(form);
+    scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+    scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+
+    add(scrollPane, BorderLayout.CENTER);
 
     // Actions
     JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -173,6 +154,15 @@ public class EditCoursePanel extends JPanel {
       yearField.setText(String.valueOf(target.getTerm().getYear()));
     }
 
+    ArrayList<EditCategoriesPanel.CategoryRow> categories = new ArrayList<>();
+
+    target.getCategories().forEach((c) -> {
+      categories
+          .add(mode == EditMode.EDIT ? new ExistingCategoryRow(c)
+              : mode == EditMode.CLONE ? new ClonedCategoryRow(c)
+                  : new NewCategoryRow(c.getName(), c.getWeight()));
+    });
+    categoriesPanel.setCategories(categories);
   }
 
   private void onSave(ActionEvent e) {
@@ -187,6 +177,11 @@ public class EditCoursePanel extends JPanel {
       target.setName(name);
       target.setDescription(description);
       target.setTerm(new Term(season, year));
+
+      HashSet<Category> toDelete = new HashSet<>(target.getCategories());
+      categoriesPanel.getCategories().forEach((row) -> toDelete.remove(row.save(target)));
+      toDelete.forEach((c) -> c.delete());
+
       mainWindow.getStore().save();
       try {
         mainWindow.getNavigator().backTo(CourseViewPanel.getKey(mainWindow, target));
@@ -196,15 +191,66 @@ public class EditCoursePanel extends JPanel {
         mainWindow.getNavigator().back();
       }
     } else {
-      Course result = mainWindow.getAuth().getInstructor().get()
+      Course newCourse = mainWindow.getAuth().getInstructor().get()
           .createCourse(UUID.randomUUID().toString(), code, name, new Term(season, year), description);
+
+      categoriesPanel.getCategories().forEach((row) -> row.save(newCourse));
+
       mainWindow.getStore().save();
-      mainWindow.getNavigator().replace(CourseViewPanel.getKey(mainWindow, result));
+      mainWindow.getNavigator().replace(CourseViewPanel.getKey(mainWindow, newCourse));
     }
   }
 
   private void onCancel(ActionEvent e) {
     mainWindow.getNavigator().back();
+  }
+
+  private JPanel createInfoSection() {
+    JPanel infoSection = new JPanel(new GridBagLayout());
+    GridBagConstraints gbc = new GridBagConstraints();
+    gbc.insets = new java.awt.Insets(5, 5, 5, 5);
+    gbc.anchor = GridBagConstraints.WEST;
+
+    // course number
+    gbc.gridx = 0;
+    gbc.gridy = 0;
+    infoSection.add(new JLabel("Course Number:"), gbc);
+    courseNumberField = new JTextField(20);
+    gbc.gridx = 1;
+    infoSection.add(courseNumberField, gbc);
+
+    // course name
+    gbc.gridx = 0;
+    gbc.gridy = 1;
+    infoSection.add(new JLabel("Course Name:"), gbc);
+    courseNameField = new JTextField(20);
+    gbc.gridx = 1;
+    infoSection.add(courseNameField, gbc);
+
+    // course description
+    gbc.gridx = 0;
+    gbc.gridy = 2;
+    infoSection.add(new JLabel("Course Description:"), gbc);
+    courseDescriptionField = new JTextField(20);
+    gbc.gridx = 1;
+    infoSection.add(courseDescriptionField, gbc);
+
+    // course season
+    gbc.gridx = 0;
+    gbc.gridy = 3;
+    infoSection.add(new JLabel("Course Season:"), gbc);
+    seasonBox = new JComboBox<>(Term.Season.values());
+    gbc.gridx = 1;
+    infoSection.add(seasonBox, gbc);
+    // course year
+    gbc.gridx = 0;
+    gbc.gridy = 4;
+    infoSection.add(new JLabel("Course Year:"), gbc);
+    yearField = new JTextField(20);
+    gbc.gridx = 1;
+    infoSection.add(yearField, gbc);
+
+    return infoSection;
   }
 
 }

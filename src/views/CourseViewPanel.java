@@ -2,9 +2,9 @@ package views;
 
 import auth.Auth;
 import obj.Course;
+import views.editcourse.EditCoursePanel;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
 public class CourseViewPanel extends JPanel {
@@ -81,8 +81,10 @@ public class CourseViewPanel extends JPanel {
         });
         grid.add(rosterBtn);
 
-        // 3) Placeholder / UNIMPLEMENTED
+        // 3) Edit button (instructors only)
         JButton editBtn = new JButton("Edit");
+        editBtn.setEnabled(isInstructor && course != null);
+        editBtn.setVisible(isInstructor);
         editBtn.addActionListener(
                 e -> mainWindow.getNavigator().push(EditCoursePanel.getEditKey(mainWindow, course)));
         grid.add(editBtn);
