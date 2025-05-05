@@ -26,6 +26,7 @@ public class SubmissionDetailPanel extends JPanel {
     /**
      * @param mainWindow for navigation callbacks
      * @param submission the submission to display
+     * @param onBack     pop back to previous screen
      */
     private SubmissionDetailPanel(MainWindow mainWindow, Submission submission) {
         this.mainWindow = mainWindow;

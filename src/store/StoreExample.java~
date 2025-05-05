@@ -31,7 +31,6 @@ public class StoreExample {
     Student charlie = factory.createStudent("charlie", "Charlie");
     Student dave = factory.createStudent("dave", "Dave");
     Student eve = factory.createStudent("eve", "Eve");
-    Student fred = factory.createStudent("fred", "Fred");
 
 
     Course cs611 = cpk.createCourse(
