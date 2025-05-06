@@ -5,7 +5,8 @@ import obj.Course;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.Arrays;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 
 /**
  * Lists all assignments for a given Course, with Edit and Submissions buttons.
@@ -13,7 +14,7 @@ import java.util.Arrays;
 public class AssignmentsScreen extends JPanel {
   private final MainWindow mainWindow;
   private final Course course;
-  private final Assignment[] assignments;
+  private final ArrayList<Assignment> assignments;
 
   public static String getKey(MainWindow mainWindow, Course course) {
     String key = "assignments:" + course.getId();
@@ -29,9 +30,7 @@ public class AssignmentsScreen extends JPanel {
   private AssignmentsScreen(MainWindow mainWindow, Course course) {
     this.mainWindow = mainWindow;
     this.course = course;
-    this.assignments = course != null
-        ? course.getAssignments().toArray(new Assignment[0])
-        : new Assignment[0];
+    this.assignments = new ArrayList<>(course.getAssignments());
 
     initComponents();
   }
@@ -55,27 +54,51 @@ public class AssignmentsScreen extends JPanel {
     // ── Assignment list ───────────────────────
     JPanel list = new JPanel();
     list.setLayout(new BoxLayout(list, BoxLayout.Y_AXIS));
-    Arrays.stream(assignments).forEach(a -> {
+    SimpleDateFormat fmt = new SimpleDateFormat("MMM d, yyyy hh:mm a");
+    assignments.forEach(a -> {
       JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT));
-      row.add(new JLabel(a.getName()));
-      row.add(Box.createHorizontalStrut(10));
-      row.add(new JLabel(a.getPoints() + " pts"));
-      row.add(Box.createHorizontalStrut(10));
-      row.add(new JLabel(a.getDueDate().toString()));
-      row.add(Box.createHorizontalGlue());
 
-      // Edit button: open AssignmentEditorPanel
-      JButton edit = new JButton("Edit");
-      edit.addActionListener(ev -> mainWindow.getNavigator().push(AssignmentEditorPanel.getKey(mainWindow, course, a)));
-      row.add(edit);
+      JLabel nameLabel = new JLabel(a.getName());
+      nameLabel.setPreferredSize(new Dimension(130, 20));
+
+      JLabel pointsLabel = new JLabel(a.getPoints() + " pts");
+      pointsLabel.setPreferredSize(new Dimension(50, 20));
+
+      JLabel dueDateLabel = new JLabel(fmt.format(a.getDueDate()));
+      dueDateLabel.setPreferredSize(new Dimension(150, 20));
+
+      JLabel categoryLabel = new JLabel(a.getCategory().getName());
+      categoryLabel.setPreferredSize(new Dimension(75, 20));
+
+      JLabel publishedLabel = new JLabel(a.isPublished() ? "Published" : "Draft");
+      publishedLabel.setForeground(a.isPublished() ? new Color(27, 150, 27) : Color.RED);
+      publishedLabel.setPreferredSize(new Dimension(63, 20));
+
+      row.add(nameLabel);
+      row.add(Box.createHorizontalStrut(5));
+      row.add(pointsLabel);
+      row.add(Box.createHorizontalStrut(5));
+      row.add(dueDateLabel);
+      row.add(Box.createHorizontalStrut(5));
+      row.add(categoryLabel);
+      row.add(Box.createHorizontalStrut(5));
+      row.add(publishedLabel);
+      row.add(Box.createHorizontalGlue());
 
       // Submissions button: open SubmissionsScreen
       JButton subs = new JButton("Submissions");
       subs.addActionListener(ev -> mainWindow.getNavigator().push(SubmissionsScreen.getKey(mainWindow, a)));
       row.add(subs);
 
+      // Edit button: open AssignmentEditorPanel
+      JButton edit = new JButton("Edit");
+      edit.addActionListener(
+          ev -> mainWindow.getNavigator().push(AssignmentEditorPanel.getEditKey(mainWindow, course, a)));
+      row.add(edit);
+
+      row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+
       list.add(row);
-      list.add(Box.createRigidArea(new Dimension(0, 5)));
     });
     add(new JScrollPane(list), BorderLayout.CENTER);
 
@@ -83,7 +106,7 @@ public class AssignmentsScreen extends JPanel {
     JPanel bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT));
     JButton create = new JButton("Create New Assignment");
     create.addActionListener(
-        ev -> mainWindow.getNavigator().push(AssignmentEditorPanel.getKey(mainWindow, course, null)));
+        ev -> mainWindow.getNavigator().push(AssignmentEditorPanel.getCreateKey(mainWindow, course)));
     bottom.add(create);
     add(bottom, BorderLayout.SOUTH);
   }

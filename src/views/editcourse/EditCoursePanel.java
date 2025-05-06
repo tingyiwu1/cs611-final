@@ -107,6 +107,8 @@ public class EditCoursePanel extends JPanel {
     if (target != null) {
       loadFields();
     }
+
+    saveButton.setEnabled(validateInputs());
   }
 
   private void initComponents() {
@@ -217,7 +219,6 @@ public class EditCoursePanel extends JPanel {
   private boolean validateInputs() {
     if (courseNumberField.getText().trim().isEmpty()) {
       errorLabel.setText("Course number cannot be empty");
-
       return false;
     }
 

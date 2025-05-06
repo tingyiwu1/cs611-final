@@ -1,23 +1,23 @@
 package myUtils;
 
 import java.awt.*;
-import java.util.Map;
+import java.util.Collection;
 import javax.swing.*;
 
 public class ChartUtils {
 
     /**
-     * Create a histogram chart panel based on student grades.
+     * Create a histogram chart panel based on the provided values.
      *
      * @param title the chart title
-     * @param studentGrades map from student ID to final grade
+     * @param values a collection of double values to be represented in the histogram
      * @return a JPanel containing the histogram
      */
-    public static JPanel createGradeHistogram(String title, Map<String, Double> studentGrades) {
+    public static JPanel createHistogram(String title, Collection<Double> values) {
         return new JPanel() {
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
-                if (studentGrades == null || studentGrades.isEmpty()) return;
+                if (values == null || values.isEmpty()) return;
 
                 // Step 0: Draw title
                 g.setColor(Color.BLACK);
@@ -29,8 +29,8 @@ public class ChartUtils {
                 // Step 1: Prepare histogram bins
                 int[] bins = new int[10]; // 10 bins for [0-10), [10-20), ..., [90-100]
 
-                for (double grade : studentGrades.values()) {
-                    int index = Math.min((int) (grade / 10), 9);
+                for (double value : values) {
+                    int index = Math.min((int) (value / 10), 9);
                     bins[index]++;
                 }
 

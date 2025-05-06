@@ -41,7 +41,7 @@ public class GradeStatisticsPanel extends JPanel {
 
         // 中间柱状图
         
-        chartPanel = ChartUtils.createGradeHistogram("Final Grades Distribution", studentGrades);
+        chartPanel = ChartUtils.createHistogram("Final Grades Distribution", studentGrades);
         
         
         add(chartPanel, BorderLayout.CENTER);
@@ -66,7 +66,7 @@ public class GradeStatisticsPanel extends JPanel {
     
         
         this.remove(chartPanel); //remove old charPanel
-        chartPanel = ChartUtils.createGradeHistogram("Final Grades Distribution", studentGrades); 
+        chartPanel = ChartUtils.createHistogram("Final Grades Distribution", studentGrades); 
         this.add(chartPanel, BorderLayout.CENTER); 
         this.revalidate(); 
         this.repaint();    
