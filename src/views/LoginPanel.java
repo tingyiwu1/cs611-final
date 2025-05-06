@@ -1,6 +1,7 @@
 package views;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Optional;
@@ -25,19 +26,27 @@ public class LoginPanel extends JPanel {
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
         JLabel titleLabel = new JLabel("Login", JLabel.CENTER);
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         add(titleLabel, BorderLayout.PAGE_START);
 
         this.userIdField = new JTextField(20);
         userIdField.setMaximumSize(userIdField.getPreferredSize());
 
-        add(createLoginInputPanel());
+
+        JPanel inputPanel = createLoginInputPanel();
+        inputPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        add(inputPanel);
 
         this.errorLabel = new JLabel();
         errorLabel.setForeground(java.awt.Color.RED);
+        errorLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         errorLabel.setVisible(false);
         add(errorLabel);
 
-        add(createLoginButton());
+        JButton loginButton = createLoginButton();
+        loginButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        add(loginButton);
 
     }
 
