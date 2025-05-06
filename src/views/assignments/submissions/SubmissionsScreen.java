@@ -2,12 +2,10 @@ package views.assignments.submissions;
 
 import obj.Assignment;
 import obj.Submission;
-import store.Store;
 import views.MainWindow;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.Arrays;
 
 /**
  * Displays submissions for a given assignment.
@@ -18,8 +16,8 @@ public class SubmissionsScreen extends JPanel {
     private final Assignment assignment;
 
     // TODO: change to store students in listmodel so it can display rows with score
-    private final DefaultListModel<String> studentsModel;
-    private final JList<String> studentsList;
+    private final DefaultListModel<Submission> submissionsModel;
+    private final JList<Submission> submissionsList;
 
     public static String getKey(MainWindow mainWindow, Assignment assignment) {
         String key = "submissions:" + assignment.getId();
@@ -30,8 +28,8 @@ public class SubmissionsScreen extends JPanel {
     private SubmissionsScreen(MainWindow mainWindow, Assignment assignment) {
         this.mainWindow = mainWindow;
         this.assignment = assignment;
-        this.studentsModel = new DefaultListModel<>();
-        this.studentsList = new JList<>(studentsModel);
+        this.submissionsModel = new DefaultListModel<>();
+        this.submissionsList = new JList<>(submissionsModel);
         initComponents();
     }
 
@@ -45,43 +43,53 @@ public class SubmissionsScreen extends JPanel {
         topPanel.add(backButton, BorderLayout.WEST);
 
         JLabel titleLabel = new JLabel(
-                "Submissions – " + assignment.getName(),
+                "Submissions - " + assignment.getName(),
                 SwingConstants.CENTER);
         titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 20f));
         topPanel.add(titleLabel, BorderLayout.CENTER);
 
         add(topPanel, BorderLayout.NORTH);
 
-        // Populate the list with student IDs
-        for (Submission sub : assignment.getSubmissions()) {
-            String studentId = sub.getStudent().getId();
-            String scoreStr = sub.getGrade().map(Object::toString).orElse("Not graded");
-            studentsModel.addElement(studentId + " (score: " + scoreStr + ")");
-            // studentsModel.addElement(sub.getStudent().getId());
-        }
+        assignment.getSubmissions().forEach(submissionsModel::addElement);
 
-        studentsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        add(new JScrollPane(studentsList), BorderLayout.CENTER);
+        submissionsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        this.submissionsList.setCellRenderer(new ListCellRenderer<Submission>() {
+            @Override
+            public Component getListCellRendererComponent(JList<? extends Submission> list, Submission value, int index,
+                    boolean isSelected, boolean cellHasFocus) {
+
+                String score = value.getGrade().map(g -> g + "/" + value.getAssignment().getPoints())
+                        .orElse("Not graded");
+                JLabel label = new JLabel(
+                        value.getStudent().getName() + " (score: " + score + ")");
+                label.setOpaque(true);
+                if (isSelected) {
+                    label.setBackground(list.getSelectionBackground());
+                    label.setForeground(list.getSelectionForeground());
+                } else {
+                    label.setBackground(list.getBackground());
+                    label.setForeground(list.getForeground());
+                }
+                return label;
+            }
+        });
+
+        add(new JScrollPane(submissionsList), BorderLayout.CENTER);
 
         // Bottom: View Submission button
         JButton viewButton = new JButton("View Submission");
-        viewButton.addActionListener(e -> openDetail(studentsList.getSelectedValue()));
+        viewButton.addActionListener(e -> mainWindow.getNavigator()
+                .push(SubmissionDetailPanel.getKey(mainWindow, submissionsList.getSelectedValue())));
+        viewButton.setEnabled(false);
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+
+        submissionsList.addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                viewButton.setEnabled(submissionsList.getSelectedValue() != null);
+            }
+        });
+
         buttonPanel.add(viewButton);
         add(buttonPanel, BorderLayout.SOUTH);
-    }
-
-    private void openDetail(String studentId) {
-        if (studentId == null)
-            return;
-        Submission found = assignment.getSubmissions().stream()
-                .filter(s -> s.getStudent().getId().equals(studentId))
-                .findFirst().orElse(null);
-        if (found == null) {
-            JOptionPane.showMessageDialog(this, "Submission not found for student ID: " + studentId,
-                    "Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-        mainWindow.getNavigator().push(SubmissionDetailPanel.getKey(mainWindow, found));
     }
 }
