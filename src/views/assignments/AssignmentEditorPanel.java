@@ -136,6 +136,7 @@ public class AssignmentEditorPanel extends JPanel {
     this.errorLabel = new JLabel();
     errorLabel.setForeground(Color.RED);
     errorLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+    errorLabel.setMaximumSize(new Dimension(5, errorLabel.getMaximumSize().height));
 
     // Actions: Save, Delete, Publish
     actions = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -208,6 +209,11 @@ public class AssignmentEditorPanel extends JPanel {
   private boolean validateInputs() {
     if (nameField.getText().trim().isEmpty()) {
       errorLabel.setText("Name cannot be empty");
+      return false;
+    }
+
+    if (categoryBox.getSelectedItem() == null) {
+      errorLabel.setText("No category selected. Add categories in the edit page.");
       return false;
     }
 
