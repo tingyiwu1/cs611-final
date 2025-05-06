@@ -1,6 +1,8 @@
-package views;
+package views.assignments.submissions;
 
 import obj.Submission;
+import views.MainWindow;
+
 import javax.swing.*;
 import java.awt.*;
 

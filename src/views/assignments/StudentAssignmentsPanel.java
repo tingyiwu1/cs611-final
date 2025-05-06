@@ -1,9 +1,11 @@
-package views;
+package views.assignments;
 
 import obj.Assignment;
 import obj.Course;
 import obj.Enrollment;
 import obj.Student;
+import views.MainWindow;
+import views.assignments.submissions.SubmissionDetailPanel;
 
 import javax.swing.*;
 import java.awt.*;

@@ -1,9 +1,10 @@
-package views;
+package views.assignments;
 
 import obj.Assignment;
 import obj.Category;
 import obj.Course;
 import store.Store;
+import views.MainWindow;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;

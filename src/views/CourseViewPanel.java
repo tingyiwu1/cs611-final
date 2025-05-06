@@ -2,6 +2,9 @@ package views;
 
 import auth.Auth;
 import obj.Course;
+import views.assignments.AssignmentsScreen;
+import views.assignments.GraderAssignmentsPanel;
+import views.assignments.StudentAssignmentsPanel;
 import views.editcourse.EditCoursePanel;
 
 import javax.swing.*;
