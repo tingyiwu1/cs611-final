@@ -153,6 +153,11 @@ public class Course extends StoredObject {
     }
 
     public Enrollment enrollStudent(String studentId) {
+        if (getEnrollment(studentId).isPresent()) {
+            Enrollment enrollment = getEnrollment(studentId).get();
+            enrollment.setStatus(Enrollment.Status.ENROLLED);
+            return enrollment;
+        }
         return createEnrollment(studentId, Enrollment.Status.ENROLLED);
     }
 

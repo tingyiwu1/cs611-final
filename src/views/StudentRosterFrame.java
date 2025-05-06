@@ -4,7 +4,6 @@ package views;
 import obj.Grader;
 import obj.Student;
 import obj.Course;
-import obj.Enrollment;
 
 import javax.swing.*;
 import java.awt.*;
@@ -133,7 +132,7 @@ public class StudentRosterFrame extends JPanel {
 
                 int choice = JOptionPane.showConfirmDialog(
                         this,
-                        "Drop " + selected.getName() + " from this course?",
+                        "Drop " + selected.getName() + " from this course? Assignment submissions will not be deleted.",
                         "Confirm Removal",
                         JOptionPane.YES_NO_OPTION
                 );
