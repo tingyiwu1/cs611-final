@@ -246,16 +246,20 @@ public class GradingPanel extends JPanel {
     }
 
     private String toLetterGrade(double score) {
-        if (score >= 90)
-            return "A";
-        else if (score >= 80)
-            return "B";
-        else if (score >= 70)
-            return "C";
-        else if (score >= 60)
-            return "D";
-        else
-            return "F";
+        if (score >= 97.0) return "A+";
+        if (score >= 93.0) return "A";
+        if (score >= 90.0) return "A-";
+        if (score >= 87.0) return "B+";
+        if (score >= 83.0) return "B";
+        if (score >= 80.0) return "B-";
+        if (score >= 77.0) return "C+";
+        if (score >= 73.0) return "C";
+        if (score >= 70.0) return "C-";
+        if (score >= 67.0) return "D+";
+        if (score >= 63.0) return "D";
+        if (score >= 60.0) return "D-";
+        if (score >= 0.0) return "F";
+        return "N/A";
     }
 
     /**

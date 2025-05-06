@@ -1,6 +1,5 @@
 package views.editcourse.categories;
 
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
@@ -233,6 +232,8 @@ public class EditCategoriesPanel extends JPanel {
       if (!validateWeight((Integer) rowPanel.weightField.getValue())) {
         return false;
       }
+      rowPanel.row.setName(rowPanel.nameField.getText());
+      rowPanel.row.setWeight((Integer) rowPanel.weightField.getValue());
     }
     return true;
   }
