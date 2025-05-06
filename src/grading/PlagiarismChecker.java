@@ -22,14 +22,15 @@ public class PlagiarismChecker {
 
         for (Assignment a : course.getAssignments()) {
             for (Submission s : a.getSubmissions()) {
-                // skip comparing with itself
+                // Skip the target submission itself...
                 if (s.getId().equals(target.getId())) continue;
+                // and skip any submission made by the same student.
+                if (s.getStudent().getId().equals(target.getStudent().getId())) continue;
 
                 double sim = StringSimilarity.similarity(tContent, s.getContent());
                 sims.put(s, sim);
             }
         }
-
         return sims;
     }
 

@@ -40,8 +40,7 @@ public class SubmissionDetailPanel extends JPanel {
         top.add(backButton, BorderLayout.WEST);
 
         String studentName = submission.getStudent().getName();
-        JLabel title = new JLabel("Submission by " + studentName,
-                SwingConstants.CENTER);
+        JLabel title = new JLabel("Submission by " + studentName, SwingConstants.CENTER);
         title.setFont(title.getFont().deriveFont(Font.BOLD, 18f));
         top.add(title, BorderLayout.CENTER);
         add(top, BorderLayout.NORTH);
@@ -52,22 +51,23 @@ public class SubmissionDetailPanel extends JPanel {
         submissionArea.setText(submission.getContent());
         add(new JScrollPane(submissionArea), BorderLayout.CENTER);
 
-        // Grading controls
+        // Bottom panel: contains grading controls and plagiarism check button
         JPanel bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         bottom.add(new JLabel("Grade:"));
 
         int initial = submission.getGrade().orElse(0);
         int maxPts = submission.getAssignment().getPoints();
-        gradeSpinner = new JSpinner(new SpinnerNumberModel(
-                initial,
-                0,
-                maxPts,
-                1));
+        gradeSpinner = new JSpinner(new SpinnerNumberModel(initial, 0, maxPts, 1));
         bottom.add(gradeSpinner);
 
         JButton saveBtn = new JButton("Save Grade");
         saveBtn.addActionListener(e -> onSave());
         bottom.add(saveBtn);
+
+        // New button for checking plagiarism
+        JButton checkPlagiarismBtn = new JButton("Check Plagiarism");
+        checkPlagiarismBtn.addActionListener(e -> onCheckPlagiarism());
+        bottom.add(checkPlagiarismBtn);
 
         add(bottom, BorderLayout.SOUTH);
     }
@@ -84,18 +84,25 @@ public class SubmissionDetailPanel extends JPanel {
                 "Grade Saved",
                 JOptionPane.INFORMATION_MESSAGE
         );
+    }
 
-        // ── PLAGIARISM CHECK ────────────────────────────────
+    /**
+     * Checks the submission for plagiarism against related submissions,
+     * excluding the submission itself, and shows a dialog with the results.
+     */
+    private void onCheckPlagiarism() {
         double threshold = 0.8;  // flag anything ≥ 80% similar
 
         // get the course containing this submission
         Course course = submission.getAssignment().getCourse();
 
         // compute all submissions whose similarity ≥ threshold
-        Map<Submission, Double> suspects =
-                PlagiarismChecker.flagged(course, submission, threshold);
+        Map<Submission, Double> suspects = PlagiarismChecker.flagged(course, submission, threshold);
 
-        if (suspects.size() > 0) {
+        // Remove the submission itself from the results if present
+        suspects.remove(submission);
+
+        if (!suspects.isEmpty()) {
             StringBuilder warn = new StringBuilder("Possible high similarity detected:\n\n");
             for (Map.Entry<Submission, Double> entry : suspects.entrySet()) {
                 Submission other = entry.getKey();
@@ -108,6 +115,13 @@ public class SubmissionDetailPanel extends JPanel {
                     warn.toString(),
                     "Plagiarism Warning",
                     JOptionPane.WARNING_MESSAGE
+            );
+        } else {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "No submissions exceed the similarity threshold.",
+                    "Plagiarism Check",
+                    JOptionPane.INFORMATION_MESSAGE
             );
         }
     }
