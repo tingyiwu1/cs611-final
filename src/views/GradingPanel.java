@@ -66,7 +66,7 @@ public class GradingPanel extends JPanel {
     
         // ✅ 顶部返回按钮 + 标题横排放置
         JPanel topBar = new JPanel(new BorderLayout());
-        JButton backButton = new JButton("← Back");
+        JButton backButton = new JButton("Back");
         backButton.addActionListener(e -> mainWindow.getNavigator().back());
         topBar.add(backButton, BorderLayout.WEST);
     

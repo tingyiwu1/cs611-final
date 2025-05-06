@@ -6,6 +6,7 @@ import store.Store;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Arrays;
 
 /**
  * Displays submissions for a given assignment.
@@ -14,6 +15,8 @@ import java.awt.*;
 public class SubmissionsScreen extends JPanel {
     private final MainWindow mainWindow;
     private final Assignment assignment;
+
+    // TODO: change to store students in listmodel so it can display rows with score
     private final DefaultListModel<String> studentsModel;
     private final JList<String> studentsList;
 
@@ -51,9 +54,9 @@ public class SubmissionsScreen extends JPanel {
         // Populate the list with student IDs
         for (Submission sub : assignment.getSubmissions()) {
             String studentId = sub.getStudent().getId();
-    String scoreStr = sub.getGrade().map(Object::toString).orElse("Not graded");
-    studentsModel.addElement(studentId + " (score: " + scoreStr + ")");
-            //studentsModel.addElement(sub.getStudent().getId());
+            String scoreStr = sub.getGrade().map(Object::toString).orElse("Not graded");
+            studentsModel.addElement(studentId + " (score: " + scoreStr + ")");
+            // studentsModel.addElement(sub.getStudent().getId());
         }
 
         studentsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -73,8 +76,11 @@ public class SubmissionsScreen extends JPanel {
         Submission found = assignment.getSubmissions().stream()
                 .filter(s -> s.getStudent().getId().equals(studentId))
                 .findFirst().orElse(null);
-        if (found == null)
+        if (found == null) {
+            JOptionPane.showMessageDialog(this, "Submission not found for student ID: " + studentId,
+                    "Error", JOptionPane.ERROR_MESSAGE);
             return;
+        }
         mainWindow.getNavigator().push(SubmissionDetailPanel.getKey(mainWindow, found));
     }
 }

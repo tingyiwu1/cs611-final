@@ -42,9 +42,9 @@ public class StoreExample {
     Category cs611Homework = cs611.createCategory("homework", "Homework", 10);
     Category cs611Midterm = cs611.createCategory("midterm", "midterm", 20);
 
-    Assignment cs611Homework1 = cs611Homework.createAssignment("homework1", "Tic-Tac-Toe-I", 0, true,
+    Assignment cs611Homework1 = cs611Homework.createAssignment("homework1", "Tic-Tac-Toe-I", 80, true,
         dateFormat.parse("01/28/2025"));
-    Assignment cs611Homework2 = cs611Homework.createAssignment("homework2", "Game Infrastructure", 100, true,
+    Assignment cs611Homework2 = cs611Homework.createAssignment("homework2", "Game Infrastructure", 80, true,
         dateFormat.parse("02/14/2025"));
     Assignment cs611MidtermExam = cs611Midterm.createAssignment("midterm-written", "Midterm-Written", 70, true,
         dateFormat.parse("03/04/2025"));
@@ -59,12 +59,17 @@ public class StoreExample {
     cs611.enrollStudent(eve);
 
     Submission charlieTTT = charlieCs611.createSubmission(cs611Homework1, "This is my tic tac toe submission");
-    charlieCs611.createSubmission(cs611Homework2, "This is my game infrastructure submission");
-    charlieCs611.createSubmission(cs611MidtermExam, "This is my midterm exam submission");
-    charlieCs611.createSubmission(cs611MidtermPracticum, "This is my midterm practicum submission");
+    Submission charlieGI = charlieCs611.createSubmission(cs611Homework2, "This is my game infrastructure submission");
+    Submission charlieMW = charlieCs611.createSubmission(cs611MidtermExam, "This is my midterm exam submission");
+    Submission charlieMC = charlieCs611.createSubmission(cs611MidtermPracticum,
+        "This is my midterm practicum submission");
 
     charlieTTT.setGrade(80);
     charlieTTT.setSimilarityScore(3);
+
+    charlieGI.setGrade(50);
+    charlieMW.setGrade(50);
+    charlieMC.setGrade(50);
 
     Course cs112 = cpk.createCourse(
         "cs112-spring2025",

@@ -1,4 +1,4 @@
-package views.editcourse;
+package views.editcourse.categories;
 
 import obj.Category;
 import obj.Course;

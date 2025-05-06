@@ -40,6 +40,7 @@ public abstract class StoredObject implements Serializable, Identifiable {
     if (store == null) {
       throw new IllegalArgumentException("Store cannot be null");
     }
+    System.out.println("Creating stored object: " + this.getClass().getSimpleName() + "(id=" + id + ")");
     this.store = store;
     this.id = id;
     store.putNew(this);
@@ -55,7 +56,7 @@ public abstract class StoredObject implements Serializable, Identifiable {
    * in all the ForeignSets declared in this object.
    */
   public void delete() {
-    // System.out.println("Deleting " + this.getClass().getSimpleName() + " " + id);
+    System.out.println("Deleting stored object: " + this.getClass().getSimpleName() + "(id=" + id + ")");
 
     // Collect all objects to delete; need to avoid deleting an object while
     // iterating

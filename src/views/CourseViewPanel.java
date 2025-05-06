@@ -8,6 +8,8 @@ import javax.swing.*;
 import java.awt.*;
 
 public class CourseViewPanel extends JPanel {
+    private static final Insets BUTTON_INSETS = new Insets(10, 20, 10, 20);
+
     private final MainWindow mainWindow;
     private final Course course;
 
@@ -40,12 +42,15 @@ public class CourseViewPanel extends JPanel {
         back.addActionListener(e -> mainWindow.getNavigator().back());
         topBar.add(back, BorderLayout.WEST);
 
-        String title = (course != null)
-                ? course.getCode() + " – " + course.getName()
-                : "No Course Selected";
+        String title = course.getCode() + " - " + course.getName();
         JLabel titleLabel = new JLabel(title, SwingConstants.CENTER);
         titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 24f));
         topBar.add(titleLabel, BorderLayout.CENTER);
+
+        JLabel subTitleLable = new JLabel(course.getTerm().getName());
+        subTitleLable.setFont(subTitleLable.getFont().deriveFont(Font.ITALIC, 16f));
+        subTitleLable.setHorizontalAlignment(SwingConstants.CENTER);
+        topBar.add(subTitleLable, BorderLayout.SOUTH);
 
         add(topBar, BorderLayout.NORTH);
 
@@ -53,11 +58,11 @@ public class CourseViewPanel extends JPanel {
         Auth.UserType role = mainWindow.getAuth().getUserType();
         boolean isInstructor = role == Auth.UserType.INSTRUCTOR;
 
-        JPanel grid = new JPanel();
-        grid.setLayout(new BoxLayout(grid, BoxLayout.Y_AXIS));
-        // --- Button grid (2×2) ---
-        // JPanel grid = new JPanel(new GridLayout(2, 2, 20, 20));
-        // grid.setBorder(new EmptyBorder(20, 20, 20, 20));
+        JPanel content = new JPanel();
+        content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
+        // content.setBorder(BorderFactory.createCompoundBorder(
+        // BorderFactory.createLineBorder(Color.red),
+        // content.getBorder()));
 
         // 1) Assignments
         JButton assignmentsBtn = new JButton("Assignments");
@@ -71,7 +76,9 @@ public class CourseViewPanel extends JPanel {
                 mainWindow.getNavigator().push(StudentAssignmentsPanel.getKey(mainWindow, course));
             }
         });
-        grid.add(assignmentsBtn);
+        assignmentsBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
+        assignmentsBtn.setMargin(BUTTON_INSETS);
+        content.add(assignmentsBtn);
 
         // 2) Roster (instructors only)
         JButton rosterBtn = new JButton("Roster");
@@ -79,23 +86,39 @@ public class CourseViewPanel extends JPanel {
         rosterBtn.setVisible(isInstructor);
         rosterBtn.addActionListener(
                 e -> mainWindow.getNavigator().push(StudentRosterFrame.getKey(mainWindow, course)));
-        grid.add(rosterBtn);
+        rosterBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
+        rosterBtn.setMargin(BUTTON_INSETS);
+        content.add(rosterBtn);
 
-        // 3) Edit button (instructors only)
+        // 3) Grading
+        JButton gradingBtn = new JButton("Grading");
+        gradingBtn.setEnabled(course != null);
+        gradingBtn.addActionListener(
+                e -> mainWindow.getNavigator().push(GradingPanel.getKey(mainWindow, course)));
+        gradingBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
+        gradingBtn.setMargin(BUTTON_INSETS);
+        content.add(gradingBtn);
+
+        // 4) Edit button (instructors only)
         JButton editBtn = new JButton("Edit");
         editBtn.setEnabled(isInstructor && course != null);
         editBtn.setVisible(isInstructor);
         editBtn.addActionListener(
                 e -> mainWindow.getNavigator().push(EditCoursePanel.getEditKey(mainWindow, course)));
-        grid.add(editBtn);
+        editBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
+        editBtn.setMargin(BUTTON_INSETS);
+        content.add(editBtn);
 
-        // 4) Grading
-        JButton gradingBtn = new JButton("Grading");
-        gradingBtn.setEnabled(course != null);
-        gradingBtn.addActionListener(
-                e -> mainWindow.getNavigator().push(GradingPanel.getKey(mainWindow, course)));
-        grid.add(gradingBtn);
+        // 5) Clone course (instructors only)
+        JButton cloneBtn = new JButton("Clone Course");
+        cloneBtn.setEnabled(isInstructor && course != null);
+        cloneBtn.setVisible(isInstructor);
+        cloneBtn.addActionListener(
+                e -> mainWindow.getNavigator().push(EditCoursePanel.getCloneKey(mainWindow, course)));
+        cloneBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
+        cloneBtn.setMargin(BUTTON_INSETS);
+        content.add(cloneBtn);
 
-        add(grid, BorderLayout.CENTER);
+        add(content, BorderLayout.CENTER);
     }
 }

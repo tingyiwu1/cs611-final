@@ -1,4 +1,4 @@
-package views.editcourse;
+package views.editcourse.categories;
 
 import java.util.UUID;
 
@@ -13,8 +13,8 @@ public class ClonedCategoryRow implements EditCategoriesPanel.CategoryRow {
 
   public ClonedCategoryRow(Category oldCategory) {
     this.oldCategory = oldCategory;
-    this.name = name;
-    this.weight = weight;
+    this.name = oldCategory.getName();
+    this.weight = oldCategory.getWeight();
   }
 
   @Override

@@ -1,6 +1,8 @@
 package views.editcourse;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
@@ -11,21 +13,31 @@ import java.util.HashSet;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 import obj.Category;
 import obj.Course;
+import obj.Grader;
 import obj.Term;
 import views.CourseViewPanel;
 import views.MainWindow;
+import views.editcourse.categories.ClonedCategoryRow;
+import views.editcourse.categories.EditCategoriesPanel;
+import views.editcourse.categories.ExistingCategoryRow;
+import views.editcourse.categories.NewCategoryRow;
 
 public class EditCoursePanel extends JPanel {
   public static enum EditMode {
@@ -43,8 +55,12 @@ public class EditCoursePanel extends JPanel {
   private JTextField courseDescriptionField;
   private JComboBox<Term.Season> seasonBox;
   private JTextField yearField;
+  private JLabel errorLabel;
+
+  private JButton saveButton;
 
   private EditCategoriesPanel categoriesPanel;
+  private EditGradersPanel gradersPanel;
 
   public static String getCreateKey(MainWindow mainWindow) {
     String key = "createCourse";
@@ -113,11 +129,33 @@ public class EditCoursePanel extends JPanel {
     JPanel form = new JPanel();
     form.setLayout(new BoxLayout(form, BoxLayout.Y_AXIS));
 
-    form.add(createInfoSection());
+    // createInfoSection();
+    JPanel infoSection = createInfoSection();
+    infoSection.setAlignmentX(Component.CENTER_ALIGNMENT);
+    // infoSection.setBorder(BorderFactory.createCompoundBorder(
+    // BorderFactory.createLineBorder(Color.red),
+    // infoSection.getBorder()));
+    infoSection.setMaximumSize(infoSection.getPreferredSize());
+
+    form.add(infoSection);
+
+    JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+    splitPane.setResizeWeight(0.5);
 
     this.categoriesPanel = new EditCategoriesPanel();
+    splitPane.setLeftComponent(categoriesPanel);
 
-    form.add(categoriesPanel);
+    this.gradersPanel = new EditGradersPanel(mainWindow);
+    splitPane.setRightComponent(gradersPanel);
+
+    splitPane.setAlignmentX(Component.CENTER_ALIGNMENT);
+    splitPane.setBorder(BorderFactory.createEmptyBorder(5, 50, 5, 50));
+    // splitPane.setBorder(BorderFactory.createCompoundBorder(
+    // BorderFactory.createLineBorder(Color.red),
+    // splitPane.getBorder()));
+    splitPane.setMaximumSize(splitPane.getPreferredSize());
+
+    form.add(splitPane);
 
     form.add(Box.createVerticalGlue());
 
@@ -129,13 +167,22 @@ public class EditCoursePanel extends JPanel {
 
     // Actions
     JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-    JButton saveBtn = new JButton((mode == EditMode.CREATE) ? "Create" : "Save");
-    saveBtn.addActionListener(this::onSave);
+    this.saveButton = new JButton((mode == EditMode.CREATE) ? "Create" : "Save");
+    saveButton.addActionListener(this::onSave);
+    saveButton.setEnabled(false);
 
     JButton cancelBtn = new JButton("Cancel");
     cancelBtn.addActionListener(this::onCancel);
 
-    actions.add(saveBtn);
+    this.errorLabel = new JLabel();
+    errorLabel.setForeground(Color.RED);
+    errorLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+    actions.add(errorLabel);
+    actions.add(Box.createHorizontalStrut(10));
+    actions.add(Box.createHorizontalGlue());
+    actions.add(Box.createHorizontalStrut(10));
+    actions.add(saveButton);
     actions.add(cancelBtn);
 
     add(actions, BorderLayout.SOUTH);
@@ -163,9 +210,40 @@ public class EditCoursePanel extends JPanel {
                   : new NewCategoryRow(c.getName(), c.getWeight()));
     });
     categoriesPanel.setCategories(categories);
+
+    gradersPanel.setGraders(target.getGraders());
+  }
+
+  private boolean validateInputs() {
+    if (courseNumberField.getText().trim().isEmpty()) {
+      errorLabel.setText("Course number cannot be empty");
+
+      return false;
+    }
+
+    if (courseNameField.getText().trim().isEmpty()) {
+      errorLabel.setText("Course name cannot be empty");
+      return false;
+    }
+
+    try {
+      Integer.parseInt(yearField.getText().trim());
+    } catch (NumberFormatException e) {
+      errorLabel.setText("Course year must be a number");
+      return false;
+    }
+
+    errorLabel.setText("");
+    return true;
   }
 
   private void onSave(ActionEvent e) {
+    if (!categoriesPanel.validateCategories()) {
+      JOptionPane.showMessageDialog(this, "Please fix the errors in the categories before saving",
+          "Error", JOptionPane.ERROR_MESSAGE);
+      return;
+    }
+
     String code = courseNumberField.getText().trim();
     String name = courseNameField.getText().trim();
     String description = courseDescriptionField.getText().trim();
@@ -178,9 +256,25 @@ public class EditCoursePanel extends JPanel {
       target.setDescription(description);
       target.setTerm(new Term(season, year));
 
-      HashSet<Category> toDelete = new HashSet<>(target.getCategories());
-      categoriesPanel.getCategories().forEach((row) -> toDelete.remove(row.save(target)));
-      toDelete.forEach((c) -> c.delete());
+      HashSet<Category> categoriesToDelete = new HashSet<>(target.getCategories());
+      categoriesPanel.getCategories().forEach((row) -> categoriesToDelete.remove(row.save(target)));
+      categoriesToDelete.forEach((c) -> c.delete());
+
+      HashSet<Grader> toRemoveGraders = new HashSet<>(target.getGraders());
+      ArrayList<Grader> toAddGraders = new ArrayList<>();
+
+      gradersPanel.getGraders().forEach((g) -> {
+        if (toRemoveGraders.contains(g)) {
+          toRemoveGraders.remove(g);
+        } else {
+          toAddGraders.add(g);
+        }
+      });
+
+      toRemoveGraders.forEach((g) -> g.getEmployment(target)
+          .orElseThrow(() -> new IllegalStateException("Trying to remove grader not employed for course"))
+          .delete());
+      toAddGraders.forEach((g) -> target.createEmployment(g));
 
       mainWindow.getStore().save();
       try {
@@ -196,6 +290,8 @@ public class EditCoursePanel extends JPanel {
 
       categoriesPanel.getCategories().forEach((row) -> row.save(newCourse));
 
+      gradersPanel.getGraders().forEach((g) -> newCourse.createEmployment(g));
+
       mainWindow.getStore().save();
       mainWindow.getNavigator().replace(CourseViewPanel.getKey(mainWindow, newCourse));
     }
@@ -203,6 +299,23 @@ public class EditCoursePanel extends JPanel {
 
   private void onCancel(ActionEvent e) {
     mainWindow.getNavigator().back();
+  }
+
+  private class ValidateDocumentListener implements DocumentListener {
+    @Override
+    public void insertUpdate(DocumentEvent e) {
+      saveButton.setEnabled(validateInputs());
+    }
+
+    @Override
+    public void removeUpdate(DocumentEvent e) {
+      saveButton.setEnabled(validateInputs());
+    }
+
+    @Override
+    public void changedUpdate(DocumentEvent e) {
+      saveButton.setEnabled(validateInputs());
+    }
   }
 
   private JPanel createInfoSection() {
@@ -216,6 +329,7 @@ public class EditCoursePanel extends JPanel {
     gbc.gridy = 0;
     infoSection.add(new JLabel("Course Number:"), gbc);
     courseNumberField = new JTextField(20);
+    courseNumberField.getDocument().addDocumentListener(new ValidateDocumentListener());
     gbc.gridx = 1;
     infoSection.add(courseNumberField, gbc);
 
@@ -224,6 +338,7 @@ public class EditCoursePanel extends JPanel {
     gbc.gridy = 1;
     infoSection.add(new JLabel("Course Name:"), gbc);
     courseNameField = new JTextField(20);
+    courseNameField.getDocument().addDocumentListener(new ValidateDocumentListener());
     gbc.gridx = 1;
     infoSection.add(courseNameField, gbc);
 
@@ -247,6 +362,7 @@ public class EditCoursePanel extends JPanel {
     gbc.gridy = 4;
     infoSection.add(new JLabel("Course Year:"), gbc);
     yearField = new JTextField(20);
+    yearField.getDocument().addDocumentListener(new ValidateDocumentListener());
     gbc.gridx = 1;
     infoSection.add(yearField, gbc);
 

@@ -1,9 +1,12 @@
-package views.editcourse;
+package views.editcourse.categories;
 
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -19,6 +22,9 @@ import obj.Category;
 import obj.Course;
 
 public class EditCategoriesPanel extends JPanel {
+  private static final int WEIGHT_COLUMNS = 3;
+  private static final int NAME_COLUMNS = 10;
+
   public static interface CategoryRow {
     String getName();
 
@@ -33,52 +39,43 @@ public class EditCategoriesPanel extends JPanel {
     Category save(Course course);
   }
 
-  private static interface RemoveCategoryRowAction {
-    void remove(CategoryRowPanel rowPanel);
-  }
-
-  public static class CategoryRowPanel extends JPanel {
-    private final CategoryRow row;
-    private final JTextField nameField;
-    private final JSpinner weightField;
+  public class CategoryRowPanel extends JPanel {
+    public final CategoryRow row;
+    public final JTextField nameField;
+    public final JSpinner weightField;
     private final JButton removeButton;
-    private final JLabel errorLabel;
 
-    public CategoryRowPanel(CategoryRow row, RemoveCategoryRowAction removeAction) {
+    public CategoryRowPanel(CategoryRow row) {
       this.row = row;
       setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
-      this.errorLabel = new JLabel();
-      errorLabel.setForeground(java.awt.Color.RED);
-      errorLabel.setVisible(false);
-
-      this.nameField = new JTextField(row.getName(), 20);
+      this.nameField = new JTextField(row.getName(), NAME_COLUMNS);
       this.nameField.getDocument().addDocumentListener(new DocumentListener() {
         @Override
         public void insertUpdate(DocumentEvent e) {
-          validateName(nameField.getText(), errorLabel);
+          validateCategories();
         }
 
         @Override
         public void removeUpdate(DocumentEvent e) {
-          validateName(nameField.getText(), errorLabel);
+          validateCategories();
         }
 
         @Override
         public void changedUpdate(DocumentEvent e) {
-          validateName(nameField.getText(), errorLabel);
+          validateCategories();
         }
       });
 
       this.weightField = new JSpinner();
-      ((JSpinner.DefaultEditor) weightField.getEditor()).getTextField().setColumns(5);
+      ((JSpinner.DefaultEditor) weightField.getEditor()).getTextField().setColumns(WEIGHT_COLUMNS);
       this.weightField.setValue(row.getWeight());
       this.weightField.addChangeListener(
-          (e) -> validateWeight((Integer) weightField.getValue(), errorLabel));
+          (e) -> validateCategories());
 
       this.removeButton = new JButton("Remove");
       this.removeButton.setPreferredSize(new Dimension(100, 20));
-      this.removeButton.addActionListener((e) -> removeAction.remove(this));
+      this.removeButton.addActionListener((e) -> onDeleteCategory(this));
 
       if (row.canRemove()) {
         this.removeButton.setEnabled(true);
@@ -95,7 +92,6 @@ public class EditCategoriesPanel extends JPanel {
       rowPanel.add(removeButton);
 
       add(rowPanel);
-      add(errorLabel);
 
       setMaximumSize(new Dimension(Integer.MAX_VALUE, getPreferredSize().height));
     }
@@ -111,8 +107,6 @@ public class EditCategoriesPanel extends JPanel {
   private final JLabel errorLabel;
   private final JPanel categoriesList;
 
-  // TODO: potentially refactor to not store not store them here and just have
-  // them in the CategoryRowPanels
   private ArrayList<CategoryRow> categories = new ArrayList<>();
 
   public EditCategoriesPanel() {
@@ -120,32 +114,31 @@ public class EditCategoriesPanel extends JPanel {
 
     this.errorLabel = new JLabel();
     errorLabel.setForeground(java.awt.Color.RED);
-    errorLabel.setVisible(false);
 
-    this.newNameField = new JTextField(20);
+    this.newNameField = new JTextField(NAME_COLUMNS);
     newNameField.setMaximumSize(new Dimension(Integer.MAX_VALUE, newNameField.getPreferredSize().height));
-    this.newNameField.getDocument().addDocumentListener(new DocumentListener() {
-      @Override
-      public void insertUpdate(DocumentEvent e) {
-        validateName(newNameField.getText(), errorLabel);
-      }
+    // this.newNameField.getDocument().addDocumentListener(new DocumentListener() {
+    // @Override
+    // public void insertUpdate(DocumentEvent e) {
+    // validateName(newNameField.getText(), errorLabel);
+    // }
 
-      @Override
-      public void removeUpdate(DocumentEvent e) {
-        validateName(newNameField.getText(), errorLabel);
-      }
+    // @Override
+    // public void removeUpdate(DocumentEvent e) {
+    // validateName(newNameField.getText(), errorLabel);
+    // }
 
-      @Override
-      public void changedUpdate(DocumentEvent e) {
-        validateName(newNameField.getText(), errorLabel);
-      }
-    });
+    // @Override
+    // public void changedUpdate(DocumentEvent e) {
+    // validateName(newNameField.getText(), errorLabel);
+    // }
+    // });
 
     this.newWeightField = new JSpinner();
-    ((JSpinner.DefaultEditor) newWeightField.getEditor()).getTextField().setColumns(5);
+    ((JSpinner.DefaultEditor) newWeightField.getEditor()).getTextField().setColumns(WEIGHT_COLUMNS);
     this.newWeightField.setMaximumSize(newWeightField.getPreferredSize());
     this.newWeightField
-        .addChangeListener((e) -> validateWeight((Integer) newWeightField.getValue(), errorLabel));
+        .addChangeListener((e) -> validateWeight((Integer) newWeightField.getValue()));
 
     this.addCategoryButton = new JButton("Add");
     this.addCategoryButton.setPreferredSize(new Dimension(100, 20));
@@ -160,16 +153,12 @@ public class EditCategoriesPanel extends JPanel {
     newCategoryForm.add(newWeightField);
     newCategoryForm.add(addCategoryButton);
 
-    JLabel titleLabel = new JLabel("Categories"); 
+    JLabel titleLabel = new JLabel("Categories");
     titleLabel.setFont(titleLabel.getFont().deriveFont(16f));
-    
+
     add(titleLabel);
     add(Box.createVerticalStrut(10));
     add(newCategoryForm);
-
-    add(errorLabel);
-
-    add(Box.createVerticalGlue());
 
     // Existing categories
     categoriesList = new JPanel();
@@ -178,11 +167,19 @@ public class EditCategoriesPanel extends JPanel {
     scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
     scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
     scrollPane.setPreferredSize(new Dimension(0, 150));
+    scrollPane.setBorder(BorderFactory.createEmptyBorder());
+    // scrollPane.setBorder(BorderFactory.createCompoundBorder(
+    // BorderFactory.createLineBorder(Color.red),
+    // scrollPane.getBorder()));
 
     refreshCategories();
 
     add(scrollPane);
-    add(Box.createVerticalGlue());
+
+    add(errorLabel);
+
+    // setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Color.red),
+    // getBorder()));
   }
 
   public void setCategories(ArrayList<CategoryRow> categories) {
@@ -197,46 +194,52 @@ public class EditCategoriesPanel extends JPanel {
   private void refreshCategories() {
     categoriesList.removeAll();
     for (CategoryRow category : categories) {
-      CategoryRowPanel rowPanel = new CategoryRowPanel(category, this::onDeleteCategory);
+      CategoryRowPanel rowPanel = new CategoryRowPanel(category);
       categoriesList.add(rowPanel);
     }
     categoriesList.revalidate();
     categoriesList.repaint();
   }
 
-  private static boolean validateName(String name, JLabel errorLabel) {
+  private boolean validateName(String name) {
     if (name.isEmpty()) {
-      if (errorLabel != null) {
-        errorLabel.setText("Name cannot be empty.");
-        errorLabel.setVisible(true);
-      }
+      errorLabel.setText("Name cannot be empty.");
       return false;
     } else {
-      if (errorLabel != null) {
-        errorLabel.setVisible(false);
-      }
+      errorLabel.setText("");
       return true;
     }
   }
 
-  private static boolean validateWeight(int weight, JLabel errorLabel) {
+  private boolean validateWeight(int weight) {
     if (weight < 0) {
-      if (errorLabel != null) {
-        errorLabel.setText("Weight be non-negative.");
-        errorLabel.setVisible(true);
-      }
+      errorLabel.setText("Weight be non-negative.");
       return false;
     } else {
-      if (errorLabel != null) {
-        errorLabel.setVisible(false);
-      }
+      errorLabel.setText("");
       return true;
     }
+  }
+
+  public boolean validateCategories() {
+    for (Component row : categoriesList.getComponents()) {
+      if (!(row instanceof CategoryRowPanel)) {
+        continue;
+      }
+      CategoryRowPanel rowPanel = (CategoryRowPanel) row;
+      if (!validateName(rowPanel.nameField.getText())) {
+        return false;
+      }
+      if (!validateWeight((Integer) rowPanel.weightField.getValue())) {
+        return false;
+      }
+    }
+    return true;
   }
 
   private void onAddCategory(ActionEvent e) {
-    if (!validateName(newNameField.getText(), errorLabel)
-        || !validateWeight((Integer) newWeightField.getValue(), errorLabel)) {
+    if (!validateName(newNameField.getText())
+        || !validateWeight((Integer) newWeightField.getValue())) {
       return;
     }
     String name = newNameField.getText();
@@ -244,10 +247,12 @@ public class EditCategoriesPanel extends JPanel {
 
     CategoryRow categoryRow = new NewCategoryRow(name, weight);
     categories.add(categoryRow);
-    categoriesList.add(new CategoryRowPanel(categoryRow, this::onDeleteCategory));
+
+    refreshCategories();
+
     newNameField.setText("");
     newWeightField.setValue(0);
-    errorLabel.setVisible(false);
+    newNameField.requestFocus();
   }
 
   private void onDeleteCategory(CategoryRowPanel rowPanel) {
@@ -255,9 +260,11 @@ public class EditCategoriesPanel extends JPanel {
       throw new IllegalStateException("Cannot delete category with assignments");
     }
     categories.remove(rowPanel.getRow());
-    categoriesList.remove(rowPanel);
-    categoriesList.revalidate();
-    categoriesList.repaint();
+
+    refreshCategories();
+
+    newNameField.requestFocus();
+
   }
 
 }
