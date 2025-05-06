@@ -15,7 +15,6 @@ public class SubmissionsScreen extends JPanel {
     private final MainWindow mainWindow;
     private final Assignment assignment;
 
-    // TODO: change to store students in listmodel so it can display rows with score
     private final DefaultListModel<Submission> submissionsModel;
     private final JList<Submission> submissionsList;
 

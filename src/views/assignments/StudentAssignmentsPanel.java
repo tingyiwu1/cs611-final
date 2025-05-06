@@ -114,10 +114,10 @@ public class StudentAssignmentsPanel extends JPanel {
             // East: submit/update & view submissions
             JPanel east = new JPanel(new GridLayout(2, 1, 5, 5));
 
-            JButton viewSubs = new JButton("Submissions");
-            viewSubs.addActionListener(
-                    ev -> mainWindow.getNavigator().push(SubmissionDetailPanel.getKey(mainWindow, submission)));
-            east.add(viewSubs);
+            // JButton viewSubs = new JButton("Submissions");
+            // viewSubs.addActionListener(
+            //         ev -> mainWindow.getNavigator().push(SubmissionDetailPanel.getKey(mainWindow, submission)));
+            // east.add(viewSubs);
 
             submitBtn = new JButton(done ? "Update" : "Submit");
             submitBtn.addActionListener(e -> onSubmit(a));

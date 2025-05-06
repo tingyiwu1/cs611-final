@@ -60,6 +60,7 @@ public class CourseViewPanel extends JPanel {
         // --- Determine role ---
         Auth.UserType role = mainWindow.getAuth().getUserType();
         boolean isInstructor = role == Auth.UserType.INSTRUCTOR;
+        boolean isGrader = role == Auth.UserType.GRADER;
 
         JPanel content = new JPanel();
         content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
@@ -96,6 +97,7 @@ public class CourseViewPanel extends JPanel {
         // 3) Grading
         JButton gradingBtn = new JButton("Grading");
         gradingBtn.setEnabled(course != null);
+        gradingBtn.setVisible(isInstructor || isGrader);
         gradingBtn.addActionListener(
                 e -> mainWindow.getNavigator().push(GradingPanel.getKey(mainWindow, course)));
         gradingBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
