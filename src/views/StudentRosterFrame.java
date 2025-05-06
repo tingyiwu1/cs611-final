@@ -127,30 +127,22 @@ public class StudentRosterFrame extends JPanel {
 
         // Remove Student
         JButton removeBtn = new JButton("Remove Student");
-        removeBtn.addActionListener(e -> {
-            Student selected = stuList.getSelectedValue();
-            if (selected == null) {
-                JOptionPane.showMessageDialog(
+            removeBtn.addActionListener(e -> {
+                Student selected = stuList.getSelectedValue();
+                if (selected == null) { /* warn and return */ }
+
+                int choice = JOptionPane.showConfirmDialog(
                         this,
-                        "Select a student to remove.",
-                        "No Selection",
-                        JOptionPane.WARNING_MESSAGE
+                        "Drop " + selected.getName() + " from this course?",
+                        "Confirm Removal",
+                        JOptionPane.YES_NO_OPTION
                 );
-                return;
-            }
-            int choice = JOptionPane.showConfirmDialog(
-                    this,
-                    "Drop " + selected.getName() + " from this course?",
-                    "Confirm Removal",
-                    JOptionPane.YES_NO_OPTION
-            );
-            if (choice != JOptionPane.YES_OPTION) return;
+                if (choice != JOptionPane.YES_OPTION) return;
 
-            course.createEnrollment(selected, Enrollment.Status.DROPPED);
-            mainWindow.getStore().save();
-
-            stuModel.removeElement(selected);
-        });
+                selected.dropEnrollment(course);
+                mainWindow.getStore().save();
+                stuModel.removeElement(selected);
+            });
         bottomBar.add(removeBtn);
 
         add(bottomBar, BorderLayout.SOUTH);
