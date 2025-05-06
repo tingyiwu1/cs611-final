@@ -1,8 +1,10 @@
+// views/StudentRosterFrame.java
 package views;
 
 import obj.Grader;
 import obj.Student;
 import obj.Course;
+import obj.Enrollment;
 
 import javax.swing.*;
 import java.awt.*;
@@ -86,6 +88,8 @@ public class StudentRosterFrame extends JPanel {
 
         // ── Bottom bar: Add / Remove ───────────────
         JPanel bottomBar = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+
+        // Add Student
         JButton addBtn = new JButton("Add Student");
         addBtn.addActionListener(e -> {
             String input = JOptionPane.showInputDialog(
@@ -94,7 +98,6 @@ public class StudentRosterFrame extends JPanel {
                     "Add Student",
                     JOptionPane.PLAIN_MESSAGE
             );
-
             if (input == null) return;
             String studentId = input.trim();
             if (studentId.length() == 0) return;
@@ -111,8 +114,9 @@ public class StudentRosterFrame extends JPanel {
                 );
                 return;
             }
+
             Student student = opt.get();
-            student.enrollInCourse(course);
+            course.enrollStudent(student);
             mainWindow.getStore().save();
 
             if (!stuModel.contains(student)) {
@@ -121,6 +125,7 @@ public class StudentRosterFrame extends JPanel {
         });
         bottomBar.add(addBtn);
 
+        // Remove Student
         JButton removeBtn = new JButton("Remove Student");
         removeBtn.addActionListener(e -> {
             Student selected = stuList.getSelectedValue();
@@ -141,8 +146,9 @@ public class StudentRosterFrame extends JPanel {
             );
             if (choice != JOptionPane.YES_OPTION) return;
 
-            selected.dropEnrollment(course);
+            course.createEnrollment(selected, Enrollment.Status.DROPPED);
             mainWindow.getStore().save();
+
             stuModel.removeElement(selected);
         });
         bottomBar.add(removeBtn);
