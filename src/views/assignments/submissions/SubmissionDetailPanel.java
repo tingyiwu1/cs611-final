@@ -58,8 +58,7 @@ public class SubmissionDetailPanel extends JPanel {
         bottom.add(new JLabel("Grade:"));
 
         int initial = submission.getGrade().orElse(0);
-        int maxPts = submission.getAssignment().getPoints();
-        gradeSpinner = new JSpinner(new SpinnerNumberModel(initial, 0, maxPts, 1));
+        gradeSpinner = new JSpinner(new SpinnerNumberModel(initial, 0, Integer.MAX_VALUE, 1));
         bottom.add(gradeSpinner);
 
         JButton saveBtn = new JButton("Save Grade");

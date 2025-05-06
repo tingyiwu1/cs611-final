@@ -32,7 +32,7 @@ public class AssignmentEditorPanel extends JPanel {
   private final EditMode mode;
   private final Course course;
   private Assignment current;
-  private final SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd");
+  private final SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd hh:mm a");
 
   private JTextField nameField;
   private JComboBox<Category> categoryBox;
@@ -125,8 +125,8 @@ public class AssignmentEditorPanel extends JPanel {
     // Due date
     gbc.gridx = 0;
     gbc.gridy = 3;
-    form.add(new JLabel("Due Date (YYYY-MM-DD):"), gbc);
-    dueField = new JTextField(10);
+    form.add(new JLabel("Due Date (eg. 2025-01-01 12:00 AM):"), gbc);
+    dueField = new JTextField(20);
     dueField.getDocument().addDocumentListener(new ValidateDocumentListener());
     gbc.gridx = 1;
     form.add(dueField, gbc);
@@ -298,8 +298,8 @@ public class AssignmentEditorPanel extends JPanel {
       current.delete();
       mainWindow.getStore().save();
       // JOptionPane.showMessageDialog(this,
-      //     "Deleted assignment: " + current.getName(),
-      //     "Deleted", JOptionPane.INFORMATION_MESSAGE);
+      // "Deleted assignment: " + current.getName(),
+      // "Deleted", JOptionPane.INFORMATION_MESSAGE);
       try {
         mainWindow.getNavigator().backTo(AssignmentsScreen.getKey(mainWindow, course));
       } catch (NoSuchElementException e) {
