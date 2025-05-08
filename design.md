@@ -29,7 +29,6 @@ This project is a course management system built using Java Swing.
 - `src.views.course.*` : Screens for viewing a course and managing roster and grades.
 - `src.views.assignments.*` : Screens for interacting with assignments
 - `src.views.editcourse.*` : Screens and components for editing a course's attributes, categories, and graders
-<!-- TODO: anything I missed? -->
 
 ## Design Details
 
@@ -38,8 +37,26 @@ This project is a course management system built using Java Swing.
 ### Persistence
 
 ### Authentication
+- `Auth` class for user authentication and session management
+- `LoginPanel` for user login
 
 ### Page Navigation
-
-
-<!-- TODO -->
+- `Navigator` class for page navigation and panel rendering
+- `LoginPanel` for user login
+- `CourseListPanel` for course selection and creation
+- `CourseViewPanel` for course dashboard
+- `GradingPanel` for student grade management
+- `StudentRosterFrame` for student roster management
+- `AssignmentListPanel` for assignment selection and creation
+- `AssignmentViewPanel` for assignment dashboard
+- `AssignmentSubmissionPanel` for student submission and plagiarism detection
+- `AssignmentGradingPanel` for grader grading and final grade calculation
+- `GradeStatisticsPanel` for final grade statistics and histogram visualization
+- `EditCategoriesPanel` for editing course categories
+- `EditGradersPanel` for editing course graders
+- `AssignmentEditorScreen` for creating and editing assignments
+- `SubmissionDetailsPanel` for displaying assignment submission details
+- `SubmissionsScreen` for displaying a list of assignment submissions
+- `StudentAssignmentsScreen` for displaying a list of assignments to students without advanced permissions
+- `GraderAssignmentsScreen` for displaying a list of assignments to graders with advanced permissions
+- `EditCourseScreen` for editing course attributes, categories, and graders
