@@ -3,6 +3,7 @@ package views;
 import auth.Auth;
 import obj.Course;
 import obj.Term;
+import views.course.CourseViewPanel;
 import views.editcourse.EditCoursePanel;
 
 import javax.swing.*;

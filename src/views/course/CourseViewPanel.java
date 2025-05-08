@@ -1,7 +1,8 @@
-package views;
+package views.course;
 
 import auth.Auth;
 import obj.Course;
+import views.MainWindow;
 import views.assignments.AssignmentsScreen;
 import views.assignments.GraderAssignmentsPanel;
 import views.assignments.StudentAssignmentsPanel;

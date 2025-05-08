@@ -1,9 +1,10 @@
-package views;
+package views.course;
 
 import grading.GradeCalculator;
 import obj.Assignment;
 import obj.Course;
 import obj.Submission;
+import views.MainWindow;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
