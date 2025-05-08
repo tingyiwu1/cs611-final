@@ -7,8 +7,7 @@ This project is a course management system built using Java Swing.
 ## Notable Design Patterns
 
 - **Singleton**: The `Store` class is a singleton, ... <!--TODO -->
-- **Factory**: The `StoredObjectFactory` class is a factory for creating stored objects.
-- 
+
 ---
 
 ## Files
@@ -40,6 +39,5 @@ This project is a course management system built using Java Swing.
 ### Authentication
 
 ### Page Navigation
-
 
 <!-- TODO -->
