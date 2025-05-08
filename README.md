@@ -4,7 +4,7 @@
 
 - Nick Galis / TingYi Wu / Xueyang Xu
 - ngalis@bu.edu / tingyiwu@bu.edu / snoun@bu.edu
-- <!-- TODO --> / U85278299 / <!-- TODO -->
+- <!-- TODO --> / U85278299 / U38282683
 
 ---
 
@@ -17,6 +17,37 @@
 - `src.util` : Miscellaneous utility classes
 - `src.views` : User interface implementation
 - `src.views.Navigator.java` : Page navigation system
+
+---
+
+## Package Overview
+
+### `grading` package  
+Implements grading logic with multiple interchangeable strategies using the Strategy Pattern.
+
+**Classes:**
+- `GradeCalculator`: Core engine that handles student grade calculation and strategy delegation.  
+- `GradingStrategy`: Interface for grade computation algorithms.  
+- `RatioStrategy`: Standard weighted average based on assignment weights.  
+- `DropLowNStrategy`: Drops the lowest N assignment scores before averaging.  
+- `CategoryRatioStrategy`: Aggregates scores by category, then applies normalized weighting.  
+- `PlagiarismChecker`: Detects similar submissions to identify potential plagiarism cases.  
+
+---
+
+### `views` package  
+Handles the entire Swing-based user interface, with panels for login, course navigation, grading, and visualization.
+
+**Classes:**
+- `MainWindow`: Top-level `JFrame` managing login and post-login views with panel switching.  
+- `Navigator`: Utility class that manages screen navigation with back-stack and dynamic panel rendering.  
+- `LoginPanel`: User login interface with ID input and feedback.  
+- `CourseListPanel`: Displays all courses grouped by semester and allows course creation.  
+- `CourseViewPanel`: Dashboard view that adapts available actions based on user roles (Instructor, Grader, Student).  
+- `GradingPanel`: Table and histogram view for instructors to manage and analyze student submissions.  
+- `GradeStatisticsPanel`: Shows final grade statistics (min, max, avg) and renders a histogram.  
+- `SetGradingRulePanel`: Provides UI to configure grading strategies (ratio-based or drop-low).  
+- `StudentRosterFrame`: Interface for viewing and modifying student enrollments in a course.  
 
 ---
 
