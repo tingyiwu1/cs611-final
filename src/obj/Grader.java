@@ -5,9 +5,15 @@ import java.util.Optional;
 
 import store.Store;
 
+/**
+ * Stored object representing a grader. Graders are associated with a course
+ * through an employment. Contains a foreign set of employments.
+ * 
+ * Deleting a grader will delete all employments associated with that grader.
+ */
 public class Grader extends User {
 
-  private final ForeignSet<Employment> employments = new ForeignSet<>(Employment.class, "grader", this); // owned
+  private final ForeignSet<Employment> employments = new ForeignSet<>(Employment.class, "grader"); // owned
 
   public Grader(Store store, String id, String name) {
     super(store, id, name);

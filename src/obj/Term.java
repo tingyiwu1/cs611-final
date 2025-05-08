@@ -2,6 +2,12 @@ package obj;
 
 import java.io.Serializable;
 
+/**
+ * Represents a term in the academic calendar.
+ * 
+ * A term consists of a season (e.g., Spring, Summer, Fall, Winter) and a year.
+ * It implements Comparable to allow sorting based on year and season.
+ */
 public class Term implements Serializable, Comparable<Term> {
 
   public static enum Season {

@@ -6,6 +6,11 @@ import java.util.Date;
 import store.Store;
 import store.StoredObject;
 
+/**
+ * Stored object representing an assignment. Assignments are associated with a
+ * category which must belong to the same course. Contains a foreign set of
+ * submissions.
+ */
 public class Assignment extends StoredObject {
   private String name;
   private int points;
@@ -13,7 +18,7 @@ public class Assignment extends StoredObject {
   private Date dueDate;
   private final ForeignKey<Course> course = new ForeignKey<>(Course.class); // owned by
   private final ForeignKey<Category> category = new ForeignKey<>(Category.class); // owned by
-  private final ForeignSet<Submission> submissions = new ForeignSet<>(Submission.class, "assignment", this); // owned
+  private final ForeignSet<Submission> submissions = new ForeignSet<>(Submission.class, "assignment"); // owned
 
   public Assignment(Store store, String id, String name, String courseId, String categoryId, int points,
       boolean isPublished, Date dueDate) {
@@ -24,12 +29,6 @@ public class Assignment extends StoredObject {
     this.dueDate = dueDate;
     this.course.setId(courseId);
     this.category.setId(categoryId);
-  }
-
-  public static Assignment[] getSampleAssignments() {
-    return new Assignment[] { new Assignment(null, "assignment1", "Assignment 1", "course1", "category1", 10, true,
-        new Date()), new Assignment(null, "assignment2", "Assignment 2", "course1", "category1", 10, true, new Date()),
-        new Assignment(null, "assignment3", "Assignment 3", "course1", "category1", 10, true, new Date()) };
   }
 
   public String getName() {

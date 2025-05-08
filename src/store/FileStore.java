@@ -13,8 +13,19 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Optional;
 
+/**
+ * Concrete implementation of the {@code Store} interface that uses a
+ * single file to store {@code StoredObjects}. It uses Java serialization to
+ * read and write the objects to the file.
+ */
 public class FileStore implements Store {
   private final Path dataPath;
+
+  /**
+   * The data structure that holds the stored objects and is written to the file.
+   * For each subclass of {@code StoredObject}, we maintain a repository, which
+   * itself is a {@code HashMap} of IDs to {@code StoredObject}s.
+   */
   private final HashMap<Class<? extends StoredObject>, HashMap<String, StoredObject>> repositoryMap;
 
   @SuppressWarnings("unchecked")
@@ -34,7 +45,8 @@ public class FileStore implements Store {
 
     } catch (InvalidClassException e) {
       // Version mismatch: abandon the old file and start fresh
-      System.err.println("Warning: serialized store is incompatible (serialVersionUID mismatch), starting with empty store.");
+      System.err
+          .println("Warning: serialized store is incompatible (serialVersionUID mismatch), starting with empty store.");
       repo = new HashMap<>();
 
     } catch (ClassNotFoundException e) {
@@ -51,6 +63,7 @@ public class FileStore implements Store {
     // Rewire the transient `store` field in every deserialized object
     for (HashMap<String, StoredObject> r : repo.values()) {
       for (StoredObject obj : r.values()) {
+        // Traverse up the class hierarchy to find the StoredObject class
         Class<?> clazz = obj.getClass();
         while (clazz != null && !clazz.equals(StoredObject.class)) {
           clazz = clazz.getSuperclass();
@@ -58,6 +71,8 @@ public class FileStore implements Store {
         if (clazz == null) {
           throw new RuntimeException("StoredObject class not found in hierarchy");
         }
+
+        // Set the store field to this instance
         try {
           Field f = clazz.getDeclaredField("store");
           f.setAccessible(true);
@@ -103,7 +118,7 @@ public class FileStore implements Store {
   @Override
   public <T extends StoredObject> void upsert(T obj) {
     repositoryMap.computeIfAbsent(obj.getClass(), k -> new HashMap<>())
-            .put(obj.getId(), obj);
+        .put(obj.getId(), obj);
   }
 
   @Override

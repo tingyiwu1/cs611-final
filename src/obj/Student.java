@@ -5,9 +5,15 @@ import java.util.Optional;
 
 import store.Store;
 
+/**
+ * Stored object representing a student. Students are associated with a course
+ * through an enrollment. Contains a foreign set of enrollments.
+ * 
+ * Deleting a student will delete all enrollments associated with that student.
+ */
 public class Student extends User {
 
-  private final ForeignSet<Enrollment> enrollments = new ForeignSet<>(Enrollment.class, "student", this); // owned
+  private final ForeignSet<Enrollment> enrollments = new ForeignSet<>(Enrollment.class, "student"); // owned
 
   public Student(Store store, String id, String name) {
     super(store, id, name);

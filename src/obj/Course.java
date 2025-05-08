@@ -7,16 +7,24 @@ import java.util.Optional;
 import store.Store;
 import store.StoredObject;
 
+/**
+ * Stored object representing a course. Courses are associated with an
+ * instructor. Contains foreign sets of enrollments, employments, assignments,
+ * and categories, with the first 2 handle students and graders associated with
+ * this course, respectively.
+ * 
+ * Includes helper methods for creating and managing associated objects.
+ */
 public class Course extends StoredObject {
     private String code;
     private String name;
     private Term term;
     private String description;
     private final ForeignKey<Instructor> instructor = new ForeignKey<>(Instructor.class); // owned by
-    private final ForeignSet<Enrollment> enrollments = new ForeignSet<>(Enrollment.class, "course", this); // owned
-    private final ForeignSet<Employment> employments = new ForeignSet<>(Employment.class, "course", this); // owned
-    private final ForeignSet<Assignment> assignments = new ForeignSet<>(Assignment.class, "course", this); // owned
-    private final ForeignSet<Category> categories = new ForeignSet<>(Category.class, "course", this); // owned
+    private final ForeignSet<Enrollment> enrollments = new ForeignSet<>(Enrollment.class, "course"); // owned
+    private final ForeignSet<Employment> employments = new ForeignSet<>(Employment.class, "course"); // owned
+    private final ForeignSet<Assignment> assignments = new ForeignSet<>(Assignment.class, "course"); // owned
+    private final ForeignSet<Category> categories = new ForeignSet<>(Category.class, "course"); // owned
 
     public Course(Store store, String instructorId, String courseId, String code, String name, Term term,
             String description) {

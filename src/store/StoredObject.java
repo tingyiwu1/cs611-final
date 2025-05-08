@@ -89,8 +89,9 @@ public abstract class StoredObject implements Serializable, Identifiable {
    * Represents a "lazy" reference to {@code StoredObject} of type {@code T}. We
    * store the ID of the referred object and look it up in the store when needed.
    * 
-   * It's not enough to just store Java references we would need to remove all
-   * references to an object to delete it.
+   * It's not enough to just store Java references as we need to be able to
+   * specify what happens when a referred object is deleted. (In our case, also
+   * delete the referring object. See {@code ForeignSet} and {@code delete()}
    */
   public class ForeignKey<T extends StoredObject> implements Serializable {
     private final Class<T> type;
@@ -140,12 +141,11 @@ public abstract class StoredObject implements Serializable, Identifiable {
   public class ForeignSet<T extends StoredObject> implements Iterable<T>, Serializable {
     public final Class<T> type;
     private final String fieldName;
-    private final Identifiable referent;
+    private final Identifiable referent = StoredObject.this;
     private transient Field field = null;
 
-    public ForeignSet(Class<T> type, String fieldName, Identifiable referent) {
+    public ForeignSet(Class<T> type, String fieldName) {
       this.type = type;
-      this.referent = referent;
       this.fieldName = fieldName;
       getField();
 

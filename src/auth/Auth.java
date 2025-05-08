@@ -8,6 +8,12 @@ import obj.Student;
 import obj.User;
 import store.Store;
 
+/**
+ * Auth class for managing user authentication and authorization.
+ * 
+ * This class provides methods to log in, log out, and check the current user's
+ * type and information.
+ */
 public class Auth {
   public static enum UserType {
     INSTRUCTOR, STUDENT, GRADER

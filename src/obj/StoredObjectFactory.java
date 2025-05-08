@@ -4,6 +4,10 @@ import java.util.Date;
 
 import store.Store;
 
+/**
+ * Factory class with utility functions for creating stored objects. Each
+ * instance maintains a single store in which all store objects are created.
+ */
 public class StoredObjectFactory {
   private final Store store;
 

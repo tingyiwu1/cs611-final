@@ -5,6 +5,14 @@ import java.util.Optional;
 import store.Store;
 import store.StoredObject;
 
+/**
+ * Stored object representing a submission. Submissions are associated with an
+ * enrollment and an assignment. Contains foreign keys to the enrollment and
+ * assignment.
+ * 
+ * We also store the submission content, and nullable grade and similarity
+ * score.
+ */
 public class Submission extends StoredObject {
 
   private String content;

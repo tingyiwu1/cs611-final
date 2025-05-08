@@ -6,12 +6,16 @@ import java.util.Date;
 import store.Store;
 import store.StoredObject;
 
+/**
+ * Stored object representing a category. Categories are associated with a
+ * course and contain a foreign set of assignments.
+ */
 public class Category extends StoredObject {
 
   private String name;
   private int weight;
   private final ForeignKey<Course> course = new ForeignKey<>(Course.class); // owned by
-  private final ForeignSet<Assignment> assignments = new ForeignSet<>(Assignment.class, "category", this); // owned
+  private final ForeignSet<Assignment> assignments = new ForeignSet<>(Assignment.class, "category"); // owned
 
   public Category(Store store, String id, String courseId, String name, int weight) {
     super(store, courseId + "-" + id);
