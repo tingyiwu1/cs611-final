@@ -8,7 +8,7 @@ This project is a course management system built using Java Swing.
 
 - **Singleton**: The `Store` class is a singleton, ... <!--TODO -->
 - **Factory**: The `StoredObjectFactory` class is a factory for creating stored objects.
-- 
+
 ---
 
 ## Files
@@ -31,10 +31,14 @@ This project is a course management system built using Java Swing.
 - `src.views.editcourse.*` : Screens and components for editing a course's attributes, categories, and graders
 
 ## Design Details
-
-### Data Model
+The project involves a graphical user interface (GUI) built using Java Swing, and a persistent data store using Java serialization.
 
 ### Persistence
+- `StoredObject` interface for objects that need to be persisted
+- `StoredObjectFactory` utility class for creating stored objects
+- `Store` interface for a store that manages the persistence of `StoredObject`s
+- `FileStore` implementation of `Store` that uses Java serialization to persist objects to a file
+- `StoreExample` prepopulates the store with example data for testing and demonstration
 
 ### Authentication
 - `Auth` class for user authentication and session management
