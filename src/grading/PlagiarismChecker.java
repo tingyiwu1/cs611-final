@@ -51,17 +51,4 @@ public class PlagiarismChecker {
                 ));
     }
 
-    /**
-     * Return the top N most similar submissions, sorted descending.
-     */
-    public static List<Map.Entry<Submission, Double>> topMatches(
-            Course course,
-            Submission target,
-            int topN
-    ) {
-        return checkAll(course, target).entrySet().stream()
-                .sorted(Map.Entry.<Submission,Double>comparingByValue(Comparator.reverseOrder()))
-                .limit(topN)
-                .collect(Collectors.toList());
-    }
 }

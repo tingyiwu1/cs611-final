@@ -29,7 +29,6 @@ public class AssignmentsScreen extends JPanel {
   /**
    * @param mainWindow so you can push other screens
    * @param course     which course’s assignments to show
-   * @param onBack     Runnable to pop back to the previous card
    */
   private AssignmentsScreen(MainWindow mainWindow, Course course) {
     this.mainWindow = mainWindow;

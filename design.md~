@@ -6,6 +6,10 @@ This project is a course management system built using Java Swing.
 
 ## Notable Design Patterns
 
+<<<<<<< HEAD
+- **Singleton**: The `Store` class is a singleton, ... <!--TODO -->
+- **Factory**: The `StoredObjectFactory` class is a factory for creating stored objects.
+=======
 - **Facade/Singleton**: The `MainWindow` class is a singleton which represents the application itself. It also acts as a facade for the `Store` and `Auth` objects, making them effectively singletons as well, as only one instance of each is created and used throughout the application lifecycle. This aligns with the purpose of these classes: the application has exactly one external source of truth and exactly one active user session at a time.
 
 - **Proxy**: The `StoredObject.ForeignKey` class serves as a proxy for accessing related `StoredObject`s. It stores the ID of the related object and provides methods for retrieving the object from the store. This allows us to avoid holding a direct reference to the related object, which would cause Java to serialize the entire object graph. Caching isn't implemented, but could be easily added here if performance becomes a concern. The `StoredObject.ForeignSet` class serves a similar purpose for collections of related objects.
@@ -15,6 +19,7 @@ This project is a course management system built using Java Swing.
 - **Factory**: The `StoredObjectFactory` class provides utility functions for creating `StoredObject`s. This is especially useful because every `StoredObject` instance must have a corresponding `Store` instance to back its persistence. The `StoredObjectFactory` class provides a convenient way to create `StoredObject`s without having to pass the `Store` instance around everywhere.
 
 - **Strategy**: The `GradingStrategy` interface and its implementations (`RatioStrategy`, `DropLowNStrategy`, `CategoryRatioStrategy`) allow for different grading strategies to be used interchangeably. The `GradeCalculator` class delegates the actual grade calculation to the selected strategy.
+>>>>>>> origin/main
 
 ---
 
@@ -36,12 +41,19 @@ This project is a course management system built using Java Swing.
 - `src.views.course.*` : Screens for viewing a course and managing roster and grades.
 - `src.views.assignments.*` : Screens for interacting with assignments
 - `src.views.editcourse.*` : Screens and components for editing a course's attributes, categories, and graders
-<!-- TODO: anything I missed? -->
 
 ## Design Details
+<<<<<<< HEAD
 The project involves a graphical user interface (GUI) built using Java Swing, and a persistent data store using Java serialization.
+=======
+>>>>>>> origin/main
 
 ### Persistence
+- `StoredObject` interface for objects that need to be persisted
+- `StoredObjectFactory` utility class for creating stored objects
+- `Store` interface for a store that manages the persistence of `StoredObject`s
+- `FileStore` implementation of `Store` that uses Java serialization to persist objects to a file
+- `StoreExample` prepopulates the store with example data for testing and demonstration
 
 The `Store` interface defines the contract for a store (see `Store.java` for detailed comments) that manages the persistence of `StoredObject`s, which is the base class for all objects that need to be persisted. `FileStore` is an implementation of the `Store` interface that uses Java serialization to persist objects to a file. The `FileStore` class provides methods for loading and saving the store's contents to a file, encapsulating all the file I/O logic as well as handling serialization and deserialization specifics like populating the transient `StoredObject.store` field (See comments in `FileStore.java` for details).
 
@@ -56,6 +68,9 @@ We declare a set of `StoredObject` subclasses in `src.model` that represent the 
 In each `StoredObject` subclass, we include associated helper methods for reading and updating related objects. For example, the `Course` class has methods for adding and removing students, and the `Assignment` class has methods for adding and removing submissions. This allows us to encapsulate the logic for managing related objects within the `StoredObject` subclasses themselves, and makes the `StoredObject`s' API extremely ergonomic to use.
 
 ### Authentication
+- `Auth` class for user authentication and session management
+- `LoginPanel` for user login
+
 User sessions are handled by the `Auth` class, which provides methods for logging in and out, as well as convenience methods for checking the current user's role. Our login system is very simple, with user id being the only credential required. If a more robust login system is desired, we could easily implement it here.
 
 ### Page Navigation
