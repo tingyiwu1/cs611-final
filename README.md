@@ -4,7 +4,7 @@
 
 - Nick Galis / TingYi Wu / Xueyang Xu
 - ngalis@bu.edu / tingyiwu@bu.edu / snoun@bu.edu
-- <!-- TODO --> / U85278299 / U38282683
+- U21422739 / U85278299 / U38282683
 
 ---
 
@@ -64,14 +64,12 @@ Features include:
 - Plagiarism detection of assignment submissions
 - Automatic final grade and letter grade calculation based on weighted categories
 - Histogram visualization of final grades
-<!-- TODO: anything i missed? -->
 
 #### Design highlights, covered more in design.md:
 
 - Data persistence using Java serialization
 - Robust handling of relations between stored objects
 - Hierarchical class structure screens and components
-<!-- TODO: add any additional features or notes here -->
 
 ---
 
@@ -88,7 +86,7 @@ From the source directory:
 
 ## UML Diagram
 
-<!-- TODO: embed UML here or say which file it is -->
+![UML Diagram](src.png)
 
 ---
 
@@ -100,18 +98,21 @@ From the source directory:
 
 ## Testing Strategy
 
-<!-- TODO -->
+- Had a file called StoreExample.java that prepopulated the store with example data for testing and demonstration.
+- Had all three members run tests on their own local machines.
+- Tested empty input, invalid input, and valid input.
 
 ---
 
 ## Known Issues
 
-<!-- TODO -->
+- None
 
 ---
 
 ## References and Attribution
 
 - Used Stack Overflow for troubleshooting file I/O issues.
+- Used Stack Overflow for code to determine String Similarity
 - Used ChatGPT for debugging assistance.
 - Used GitHub Copilot for boilerplate generation and autocomplete while coding.
