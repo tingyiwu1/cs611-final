@@ -3,8 +3,8 @@ package views;
 import auth.Auth;
 import model.Course;
 import model.Term;
-import views.course.CourseViewPanel;
-import views.editcourse.EditCoursePanel;
+import views.course.CourseViewScreen;
+import views.editcourse.EditCourseScreen;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
 
-public class CourseListPanel extends JPanel {
+public class CourseListScreen extends JPanel {
     private static final Dimension CARD_SIZE = new Dimension(200, 150);
 
     private final MainWindow mainWindow;
@@ -23,11 +23,11 @@ public class CourseListPanel extends JPanel {
 
     public static String getKey(MainWindow mainWindow) {
         String key = "courseList";
-        mainWindow.getNavigator().register(key, () -> new CourseListPanel(mainWindow));
+        mainWindow.getNavigator().register(key, () -> new CourseListScreen(mainWindow));
         return key;
     }
 
-    private CourseListPanel(MainWindow mainWindow) {
+    private CourseListScreen(MainWindow mainWindow) {
         this.mainWindow = mainWindow;
 
         boolean isInstructor = mainWindow.getAuth().getUserType() == Auth.UserType.INSTRUCTOR;
@@ -46,7 +46,7 @@ public class CourseListPanel extends JPanel {
         newCourseButton.setFont(newCourseButton.getFont().deriveFont(Font.PLAIN, 16f));
         newCourseButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         newCourseButton.addActionListener(
-                e -> mainWindow.getNavigator().push(EditCoursePanel.getCreateKey(mainWindow)));
+                e -> mainWindow.getNavigator().push(EditCourseScreen.getCreateKey(mainWindow)));
 
         newCourseButton.setVisible(isInstructor);
         content.add(newCourseButton);
@@ -151,7 +151,7 @@ public class CourseListPanel extends JPanel {
         card.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseReleased(MouseEvent e) {
-                mainWindow.getNavigator().push(CourseViewPanel.getKey(mainWindow, course));
+                mainWindow.getNavigator().push(CourseViewScreen.getKey(mainWindow, course));
             }
         });
 

@@ -13,7 +13,7 @@ import model.Student;
 import java.awt.*;
 import java.util.List;
 
-public class StudentAssignmentsPanel extends JPanel {
+public class StudentAssignmentsScreen extends JPanel {
     private final MainWindow mainWindow;
     private final Course course;
     private final Student student;
@@ -21,7 +21,7 @@ public class StudentAssignmentsPanel extends JPanel {
 
     public static String getKey(MainWindow mainWindow, Course course) {
         String key = "studentAssignments:" + course.getId();
-        mainWindow.getNavigator().register(key, () -> new StudentAssignmentsPanel(mainWindow, course));
+        mainWindow.getNavigator().register(key, () -> new StudentAssignmentsScreen(mainWindow, course));
         return key;
     }
 
@@ -31,7 +31,7 @@ public class StudentAssignmentsPanel extends JPanel {
      * @param student    which student
      * @param onBack     what to do when Back is clicked
      */
-    private StudentAssignmentsPanel(MainWindow mainWindow, Course course) {
+    private StudentAssignmentsScreen(MainWindow mainWindow, Course course) {
         this.mainWindow = mainWindow;
         this.course = course;
         this.student = mainWindow.getAuth().getStudent().get();

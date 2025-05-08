@@ -23,7 +23,7 @@ import java.util.UUID;
  * Panel for creating or editing an Assignment.
  * Integrated into Navigator stack; uses onBack callback.
  */
-public class AssignmentEditorPanel extends JPanel {
+public class AssignmentEditorScreen extends JPanel {
   public static enum EditMode {
     CREATE,
     EDIT
@@ -45,7 +45,7 @@ public class AssignmentEditorPanel extends JPanel {
   public static String getCreateKey(MainWindow mainWindow,
       Course course) {
     String key = "createAssignment:" + course.getId();
-    mainWindow.getNavigator().register(key, () -> new AssignmentEditorPanel(mainWindow, course, EditMode.CREATE, null));
+    mainWindow.getNavigator().register(key, () -> new AssignmentEditorScreen(mainWindow, course, EditMode.CREATE, null));
     return key;
   }
 
@@ -53,11 +53,11 @@ public class AssignmentEditorPanel extends JPanel {
       Course course,
       Assignment toEdit) {
     String key = "editAssignment:" + course.getId() + ":" + toEdit.getId();
-    mainWindow.getNavigator().register(key, () -> new AssignmentEditorPanel(mainWindow, course, EditMode.EDIT, toEdit));
+    mainWindow.getNavigator().register(key, () -> new AssignmentEditorScreen(mainWindow, course, EditMode.EDIT, toEdit));
     return key;
   }
 
-  private AssignmentEditorPanel(MainWindow mainWindow,
+  private AssignmentEditorScreen(MainWindow mainWindow,
       Course course,
       EditMode mode,
       Assignment toEdit) {

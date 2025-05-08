@@ -33,13 +33,13 @@ import model.Course;
 import model.Grader;
 import model.Term;
 import views.MainWindow;
-import views.course.CourseViewPanel;
+import views.course.CourseViewScreen;
 import views.editcourse.categories.ClonedCategoryRow;
 import views.editcourse.categories.EditCategoriesPanel;
 import views.editcourse.categories.ExistingCategoryRow;
 import views.editcourse.categories.NewCategoryRow;
 
-public class EditCoursePanel extends JPanel {
+public class EditCourseScreen extends JPanel {
   public static enum EditMode {
     EDIT,
     CREATE,
@@ -80,19 +80,19 @@ public class EditCoursePanel extends JPanel {
     return key;
   }
 
-  public static EditCoursePanel create(MainWindow mainWindow) {
-    return new EditCoursePanel(mainWindow, EditMode.CREATE, null);
+  public static EditCourseScreen create(MainWindow mainWindow) {
+    return new EditCourseScreen(mainWindow, EditMode.CREATE, null);
   }
 
-  public static EditCoursePanel edit(MainWindow mainWindow, Course target) {
-    return new EditCoursePanel(mainWindow, EditMode.EDIT, target);
+  public static EditCourseScreen edit(MainWindow mainWindow, Course target) {
+    return new EditCourseScreen(mainWindow, EditMode.EDIT, target);
   }
 
-  public static EditCoursePanel clone(MainWindow mainWindow, Course target) {
-    return new EditCoursePanel(mainWindow, EditMode.CLONE, target);
+  public static EditCourseScreen clone(MainWindow mainWindow, Course target) {
+    return new EditCourseScreen(mainWindow, EditMode.CLONE, target);
   }
 
-  private EditCoursePanel(MainWindow mainWindow,
+  private EditCourseScreen(MainWindow mainWindow,
       EditMode mode,
       Course target) {
     this.mainWindow = mainWindow;
@@ -279,7 +279,7 @@ public class EditCoursePanel extends JPanel {
 
       mainWindow.getStore().save();
       try {
-        mainWindow.getNavigator().backTo(CourseViewPanel.getKey(mainWindow, target));
+        mainWindow.getNavigator().backTo(CourseViewScreen.getKey(mainWindow, target));
       } catch (NoSuchElementException ex) {
         // This panel should only be reachable from CourseViewPanel, so shouldn't happen
         System.err.println("EditCoursePanel: No CourseViewPanel found in navigator stack");
@@ -294,7 +294,7 @@ public class EditCoursePanel extends JPanel {
       gradersPanel.getGraders().forEach((g) -> newCourse.createEmployment(g));
 
       mainWindow.getStore().save();
-      mainWindow.getNavigator().replace(CourseViewPanel.getKey(mainWindow, newCourse));
+      mainWindow.getNavigator().replace(CourseViewScreen.getKey(mainWindow, newCourse));
     }
   }
 

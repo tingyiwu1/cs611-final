@@ -11,14 +11,14 @@ import model.Course;
 import java.awt.*;
 import java.util.List;
 
-public class GraderAssignmentsPanel extends JPanel {
+public class GraderAssignmentsScreen extends JPanel {
     private final MainWindow mainWindow;
     private final Course course;
 
     public static String getKey(MainWindow mainWindow, Course course) {
         String key = "graderAssignments:" + course.getId();
         mainWindow.getNavigator().register(key,
-                () -> new GraderAssignmentsPanel(mainWindow, course, () -> mainWindow.getNavigator().back()));
+                () -> new GraderAssignmentsScreen(mainWindow, course, () -> mainWindow.getNavigator().back()));
         return key;
     }
 
@@ -27,7 +27,7 @@ public class GraderAssignmentsPanel extends JPanel {
      * @param course     whose assignments
      * @param onBack     what to do when Back is clicked
      */
-    private GraderAssignmentsPanel(MainWindow mainWindow,
+    private GraderAssignmentsScreen(MainWindow mainWindow,
             Course course,
             Runnable onBack) {
         this.mainWindow = mainWindow;

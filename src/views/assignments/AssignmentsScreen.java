@@ -97,7 +97,7 @@ public class AssignmentsScreen extends JPanel {
       // Edit button: open AssignmentEditorPanel
       JButton edit = new JButton("Edit");
       edit.addActionListener(
-          ev -> mainWindow.getNavigator().push(AssignmentEditorPanel.getEditKey(mainWindow, course, a)));
+          ev -> mainWindow.getNavigator().push(AssignmentEditorScreen.getEditKey(mainWindow, course, a)));
       row.add(edit);
 
       row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
@@ -110,7 +110,7 @@ public class AssignmentsScreen extends JPanel {
     JPanel bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT));
     JButton create = new JButton("Create New Assignment");
     create.addActionListener(
-        ev -> mainWindow.getNavigator().push(AssignmentEditorPanel.getCreateKey(mainWindow, course)));
+        ev -> mainWindow.getNavigator().push(AssignmentEditorScreen.getCreateKey(mainWindow, course)));
     bottom.add(create);
     add(bottom, BorderLayout.SOUTH);
   }

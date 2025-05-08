@@ -90,7 +90,7 @@ public class MainWindow extends JFrame {
         logoutButton.setVisible(true);
 
         topLayout.show(mainPanel, "loggedIn");
-        navigator.push(CourseListPanel.getKey(this));
+        navigator.push(CourseListScreen.getKey(this));
     }
 
     private void logout() {

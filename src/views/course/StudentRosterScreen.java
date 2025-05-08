@@ -10,7 +10,7 @@ import model.Student;
 import java.awt.*;
 import java.util.Optional;
 
-public class StudentRosterFrame extends JPanel {
+public class StudentRosterScreen extends JPanel {
     private final MainWindow mainWindow;
     private final Course course;
     private DefaultListModel<Student> stuModel;
@@ -18,11 +18,11 @@ public class StudentRosterFrame extends JPanel {
     public static String getKey(MainWindow mainWindow, Course course) {
         String key = "roster:" + course.getId();
         mainWindow.getNavigator().register(key,
-                () -> new StudentRosterFrame(mainWindow, course));
+                () -> new StudentRosterScreen(mainWindow, course));
         return key;
     }
 
-    private StudentRosterFrame(MainWindow mainWindow, Course course) {
+    private StudentRosterScreen(MainWindow mainWindow, Course course) {
         this.mainWindow = mainWindow;
         this.course     = course;
         initComponents();

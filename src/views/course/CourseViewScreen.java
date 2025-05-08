@@ -4,14 +4,14 @@ import auth.Auth;
 import model.Course;
 import views.MainWindow;
 import views.assignments.AssignmentsScreen;
-import views.assignments.GraderAssignmentsPanel;
-import views.assignments.StudentAssignmentsPanel;
-import views.editcourse.EditCoursePanel;
+import views.assignments.GraderAssignmentsScreen;
+import views.assignments.StudentAssignmentsScreen;
+import views.editcourse.EditCourseScreen;
 
 import javax.swing.*;
 import java.awt.*;
 
-public class CourseViewPanel extends JPanel {
+public class CourseViewScreen extends JPanel {
     private static final Insets BUTTON_INSETS = new Insets(10, 20, 10, 20);
 
     private final MainWindow mainWindow;
@@ -19,11 +19,11 @@ public class CourseViewPanel extends JPanel {
 
     public static String getKey(MainWindow mainWindow, Course course) {
         String key = "courseView:" + course.getId();
-        mainWindow.getNavigator().register(key, () -> new CourseViewPanel(mainWindow, course));
+        mainWindow.getNavigator().register(key, () -> new CourseViewScreen(mainWindow, course));
         return key;
     }
 
-    public CourseViewPanel(MainWindow mainWindow, Course course) {
+    public CourseViewScreen(MainWindow mainWindow, Course course) {
         this.mainWindow = mainWindow;
         this.course = course;
         initComponents();
@@ -76,9 +76,9 @@ public class CourseViewPanel extends JPanel {
             if (isInstructor) {
                 mainWindow.getNavigator().push(AssignmentsScreen.getKey(mainWindow, course));
             } else if (role == Auth.UserType.GRADER) {
-                mainWindow.getNavigator().push(GraderAssignmentsPanel.getKey(mainWindow, course));
+                mainWindow.getNavigator().push(GraderAssignmentsScreen.getKey(mainWindow, course));
             } else {
-                mainWindow.getNavigator().push(StudentAssignmentsPanel.getKey(mainWindow, course));
+                mainWindow.getNavigator().push(StudentAssignmentsScreen.getKey(mainWindow, course));
             }
         });
         assignmentsBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -90,7 +90,7 @@ public class CourseViewPanel extends JPanel {
         rosterBtn.setEnabled(isInstructor && course != null);
         rosterBtn.setVisible(isInstructor);
         rosterBtn.addActionListener(
-                e -> mainWindow.getNavigator().push(StudentRosterFrame.getKey(mainWindow, course)));
+                e -> mainWindow.getNavigator().push(StudentRosterScreen.getKey(mainWindow, course)));
         rosterBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
         rosterBtn.setMargin(BUTTON_INSETS);
         content.add(rosterBtn);
@@ -100,7 +100,7 @@ public class CourseViewPanel extends JPanel {
         gradingBtn.setEnabled(course != null);
         gradingBtn.setVisible(isInstructor || isGrader);
         gradingBtn.addActionListener(
-                e -> mainWindow.getNavigator().push(GradingPanel.getKey(mainWindow, course)));
+                e -> mainWindow.getNavigator().push(GradingScreen.getKey(mainWindow, course)));
         gradingBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
         gradingBtn.setMargin(BUTTON_INSETS);
         content.add(gradingBtn);
@@ -110,7 +110,7 @@ public class CourseViewPanel extends JPanel {
         editBtn.setEnabled(isInstructor && course != null);
         editBtn.setVisible(isInstructor);
         editBtn.addActionListener(
-                e -> mainWindow.getNavigator().push(EditCoursePanel.getEditKey(mainWindow, course)));
+                e -> mainWindow.getNavigator().push(EditCourseScreen.getEditKey(mainWindow, course)));
         editBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
         editBtn.setMargin(BUTTON_INSETS);
         content.add(editBtn);
@@ -120,7 +120,7 @@ public class CourseViewPanel extends JPanel {
         cloneBtn.setEnabled(isInstructor && course != null);
         cloneBtn.setVisible(isInstructor);
         cloneBtn.addActionListener(
-                e -> mainWindow.getNavigator().push(EditCoursePanel.getCloneKey(mainWindow, course)));
+                e -> mainWindow.getNavigator().push(EditCourseScreen.getCloneKey(mainWindow, course)));
         cloneBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
         cloneBtn.setMargin(BUTTON_INSETS);
         content.add(cloneBtn);

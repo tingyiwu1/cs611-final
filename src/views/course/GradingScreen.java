@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 /**
  * Panel for instructors to view and grade student submissions.
  */
-public class GradingPanel extends JPanel {
+public class GradingScreen extends JPanel {
     private final MainWindow mainWindow;
     private final Course course;
     private final GradeCalculator calculator;
@@ -32,11 +32,11 @@ public class GradingPanel extends JPanel {
 
     public static String getKey(MainWindow mainWindow, Course course) {
         String key = "grading:" + course.getId();
-        mainWindow.getNavigator().register(key, () -> new GradingPanel(mainWindow, course));
+        mainWindow.getNavigator().register(key, () -> new GradingScreen(mainWindow, course));
         return key;
     }
 
-    private GradingPanel(MainWindow mainWindow, Course course) {
+    private GradingScreen(MainWindow mainWindow, Course course) {
         this.mainWindow = mainWindow;
         this.course = course;
         this.calculator = new GradeCalculator(course, course.getAssignments());
