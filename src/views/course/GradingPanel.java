@@ -1,9 +1,11 @@
 package views.course;
 
 import grading.GradeCalculator;
-import obj.Assignment;
-import obj.Course;
-import obj.Submission;
+import model.Assignment;
+import model.Course;
+import model.Student;
+import model.Submission;
+import util.ChartUtils;
 import views.MainWindow;
 
 import javax.swing.*;
@@ -14,8 +16,6 @@ import java.awt.event.MouseEvent;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
-import myUtils.ChartUtils;
-import obj.Student;
 
 /**
  * Panel for instructors to view and grade student submissions.

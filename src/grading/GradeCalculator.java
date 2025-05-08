@@ -2,10 +2,11 @@ package grading;
 
 import java.io.*;
 import java.util.*;
-import obj.Assignment;
-import obj.Category;
-import obj.Course;
-import obj.Submission;
+
+import model.Assignment;
+import model.Category;
+import model.Course;
+import model.Submission;
 
 public class GradeCalculator {
     private Course course;

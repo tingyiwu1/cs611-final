@@ -28,10 +28,10 @@ import javax.swing.SwingConstants;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-import obj.Category;
-import obj.Course;
-import obj.Grader;
-import obj.Term;
+import model.Category;
+import model.Course;
+import model.Grader;
+import model.Term;
 import views.MainWindow;
 import views.course.CourseViewPanel;
 import views.editcourse.categories.ClonedCategoryRow;

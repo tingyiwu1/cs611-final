@@ -1,4 +1,4 @@
-package myUtils;
+package util;
 
 import java.awt.*;
 import java.util.Collection;

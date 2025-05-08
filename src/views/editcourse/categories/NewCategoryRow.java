@@ -2,8 +2,8 @@ package views.editcourse.categories;
 
 import java.util.UUID;
 
-import obj.Category;
-import obj.Course;
+import model.Category;
+import model.Course;
 
 public class NewCategoryRow implements EditCategoriesPanel.CategoryRow {
   private String name;

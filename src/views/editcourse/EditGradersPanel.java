@@ -17,7 +17,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.ListCellRenderer;
 
-import obj.Grader;
+import model.Grader;
 import views.MainWindow;
 
 public class EditGradersPanel extends JPanel {

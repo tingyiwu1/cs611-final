@@ -12,7 +12,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import obj.User;
+import model.User;
 
 public class LoginPanel extends JPanel {
     private MainWindow mainWindow;

@@ -2,10 +2,10 @@ package auth;
 
 import java.util.Optional;
 
-import obj.Grader;
-import obj.Instructor;
-import obj.Student;
-import obj.User;
+import model.Grader;
+import model.Instructor;
+import model.Student;
+import model.User;
 import store.Store;
 
 /**

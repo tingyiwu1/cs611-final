@@ -17,8 +17,8 @@ import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-import obj.Category;
-import obj.Course;
+import model.Category;
+import model.Course;
 
 public class EditCategoriesPanel extends JPanel {
   private static final int WEIGHT_COLUMNS = 3;

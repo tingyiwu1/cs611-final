@@ -1,12 +1,13 @@
 package grading;
 
-import obj.Assignment;
-import obj.Course;
-import obj.Submission;
-import strings.StringSimilarity;
+import util.StringSimilarity;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+import model.Assignment;
+import model.Course;
+import model.Submission;
 
 public class PlagiarismChecker {
 

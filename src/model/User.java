@@ -1,4 +1,4 @@
-package obj;
+package model;
 
 import store.Store;
 import store.StoredObject;

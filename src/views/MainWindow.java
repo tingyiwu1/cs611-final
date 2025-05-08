@@ -1,7 +1,7 @@
 package views;
 
 import auth.Auth;
-import obj.Instructor;
+import model.Instructor;
 import store.FileStore;
 import store.Store;
 import store.StoreExample;

@@ -2,7 +2,8 @@ package grading;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import obj.Assignment;
+
+import model.Assignment;
 
 public class DropLowNStrategy implements GradingStrategy {
     private int n;

@@ -3,16 +3,16 @@ package store;
 import java.text.DateFormat;
 import java.text.ParseException;
 
-import obj.Assignment;
-import obj.Category;
-import obj.Course;
-import obj.Enrollment;
-import obj.Grader;
-import obj.Instructor;
-import obj.StoredObjectFactory;
-import obj.Student;
-import obj.Submission;
-import obj.Term;
+import model.Assignment;
+import model.Category;
+import model.Course;
+import model.Enrollment;
+import model.Grader;
+import model.Instructor;
+import model.StoredObjectFactory;
+import model.Student;
+import model.Submission;
+import model.Term;
 
 public class StoreExample {
 

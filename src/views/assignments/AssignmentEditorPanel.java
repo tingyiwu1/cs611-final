@@ -1,14 +1,15 @@
 package views.assignments;
 
-import obj.Assignment;
-import obj.Category;
-import obj.Course;
 import store.Store;
 import views.MainWindow;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+
+import model.Assignment;
+import model.Category;
+import model.Course;
 
 import java.awt.*;
 import java.text.ParseException;

@@ -1,10 +1,12 @@
 package views.course;
 
-import obj.Student;
 import views.MainWindow;
-import obj.Course;
 
 import javax.swing.*;
+
+import model.Course;
+import model.Student;
+
 import java.awt.*;
 import java.util.Optional;
 

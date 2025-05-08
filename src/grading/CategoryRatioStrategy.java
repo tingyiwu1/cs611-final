@@ -1,9 +1,9 @@
 package grading;
 
-import obj.Assignment;
-import obj.Category;
-
 import java.util.*;
+
+import model.Assignment;
+import model.Category;
 
 public class CategoryRatioStrategy implements GradingStrategy {
     @Override

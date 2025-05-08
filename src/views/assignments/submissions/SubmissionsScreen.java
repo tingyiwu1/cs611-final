@@ -1,10 +1,12 @@
 package views.assignments.submissions;
 
-import obj.Assignment;
-import obj.Submission;
 import views.MainWindow;
 
 import javax.swing.*;
+
+import model.Assignment;
+import model.Submission;
+
 import java.awt.*;
 
 /**

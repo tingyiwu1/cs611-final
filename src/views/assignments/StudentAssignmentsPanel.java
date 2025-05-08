@@ -1,13 +1,15 @@
 package views.assignments;
 
-import obj.Assignment;
-import obj.Course;
-import obj.Enrollment;
-import obj.Student;
 import views.MainWindow;
 import views.assignments.submissions.SubmissionDetailPanel;
 
 import javax.swing.*;
+
+import model.Assignment;
+import model.Course;
+import model.Enrollment;
+import model.Student;
+
 import java.awt.*;
 import java.util.List;
 
@@ -68,7 +70,7 @@ public class StudentAssignmentsPanel extends JPanel {
     }
 
     private class AssignmentRow extends JPanel {
-        private obj.Submission submission;
+        private model.Submission submission;
         private final JLabel statusLabel;
         private final JLabel gradeLabel;
         private final JTextArea submissionArea;

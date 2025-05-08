@@ -1,10 +1,11 @@
 package views.assignments.submissions;
 
-import obj.Course;
-import obj.Submission;
 import views.MainWindow;
 
 import grading.PlagiarismChecker;
+import model.Course;
+import model.Submission;
+
 import javax.swing.*;
 import java.awt.*;
 import java.util.Map;

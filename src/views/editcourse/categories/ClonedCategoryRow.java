@@ -2,9 +2,9 @@ package views.editcourse.categories;
 
 import java.util.UUID;
 
-import obj.Assignment;
-import obj.Category;
-import obj.Course;
+import model.Assignment;
+import model.Category;
+import model.Course;
 
 public class ClonedCategoryRow implements EditCategoriesPanel.CategoryRow {
   private String name;

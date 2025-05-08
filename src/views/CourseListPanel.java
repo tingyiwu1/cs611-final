@@ -1,8 +1,8 @@
 package views;
 
 import auth.Auth;
-import obj.Course;
-import obj.Term;
+import model.Course;
+import model.Term;
 import views.course.CourseViewPanel;
 import views.editcourse.EditCoursePanel;
 
